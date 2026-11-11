@@ -36,7 +36,7 @@ export default function CuentaPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-gris">Hola,</p>
-            <h1 className="font-display text-5xl">{me.name}</h1>
+            <h1 className="font-display text-[clamp(3rem,9vw,5.5rem)] leading-[0.9] tracking-[-0.02em]">{me.name}</h1>
             <p className="text-gris">{[me.business, me.city, me.phone].filter(Boolean).join(" · ")}</p>
           </div>
           <Button variant="secondary" onClick={logout}>
@@ -44,7 +44,7 @@ export default function CuentaPage() {
           </Button>
         </div>
         <section aria-labelledby="t-orders" className="flex flex-col gap-3">
-          <h2 id="t-orders" className="font-semibold">
+          <h2 id="t-orders" className="border-t border-tinta pt-4 font-display text-3xl">
             Mis pedidos
           </h2>
           {mine.length ? (
@@ -56,7 +56,7 @@ export default function CuentaPage() {
                   <li key={o.id}>
                     <Panel as="article" className="flex flex-col gap-2 p-4">
                       <div className="flex items-center justify-between gap-3">
-                        <span className="font-semibold">Pedido N° {o.number}</span>
+                        <span className="font-display text-xl">Pedido N° {o.number}</span>
                         <Badge tone={statusTone[o.status].tone}>{statusTone[o.status].label}</Badge>
                       </div>
                       <p className="text-sm text-gris">
@@ -91,7 +91,7 @@ export default function CuentaPage() {
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
       <div>
-        <h1 className="font-display text-5xl">Mi cuenta</h1>
+        <h1 className="font-display text-[clamp(3rem,10vw,5rem)] leading-[0.9] tracking-[-0.02em]">Mi cuenta</h1>
         <p className="mt-2 text-gris">Ingresá con tu teléfono para ver tus pedidos y que tus datos queden cargados.</p>
       </div>
       <Panel as="div" className="p-5">

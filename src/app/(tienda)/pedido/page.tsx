@@ -48,7 +48,7 @@ export default function PedidoPage() {
     return (
       <div className="mx-auto flex max-w-xl flex-col items-center gap-5 px-4 py-16 text-center">
         <CheckCircleIcon size={56} className="text-ok" weight="duotone" />
-        <h1 className="font-display text-4xl">Pedido N° {sent.order.number} registrado</h1>
+        <h1 className="font-display text-5xl leading-tight">Pedido N° {sent.order.number} registrado</h1>
         {sent.url ? (
           <>
             <p className="text-gris">Se abrió WhatsApp con el detalle. Si no se abrió, tocá el botón para enviarlo.</p>
@@ -113,19 +113,19 @@ export default function PedidoPage() {
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1.3fr_1fr]">
       <section aria-labelledby="t-items" className="flex flex-col gap-4">
-        <h1 id="t-items" className="font-display text-5xl">
+        <h1 id="t-items" className="border-b border-tinta pb-4 font-display text-[clamp(3rem,9vw,6rem)] leading-[0.9] tracking-[-0.02em]">
           Tu pedido
         </h1>
-        <ul className="flex flex-col divide-y divide-linea rounded-2xl border border-linea bg-papel">
+        <ul className="flex flex-col divide-y divide-linea">
           {lines.map((l) => (
-            <li key={l.variantId} className="flex gap-3 p-3 sm:gap-4">
-              <Link href={`/producto?id=${l.p.id}`} className="w-20 shrink-0 overflow-hidden rounded-xl sm:w-24">
+            <li key={l.variantId} className="flex gap-3 py-4 sm:gap-5">
+              <Link href={`/producto?id=${l.p.id}`} className="w-20 shrink-0 overflow-hidden rounded-[4px] sm:w-24">
                 <ProductImage product={l.p} sizes="sm" />
               </Link>
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-semibold leading-snug">{l.p.name}</p>
+                    <p className="font-display text-xl leading-tight">{l.p.name}</p>
                     <p className="text-sm text-gris">
                       Talle {l.v.size}
                       {l.v.color !== "Único" && ` · ${l.v.color}`} · <span className="num">{l.p.code}</span>
@@ -147,32 +147,32 @@ export default function PedidoPage() {
       </section>
 
       <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
-        <Panel className="flex flex-col gap-3 p-5">
+        <section aria-label="Resumen" className="banda flex flex-col gap-4 rounded-[4px] p-5">
           <div className="flex items-baseline justify-between">
             <span className="text-gris">Unidades</span>
             <span className="num font-semibold">{units}</span>
           </div>
           {showPrice && (
-            <div className="flex items-baseline justify-between">
+            <div className="flex flex-col gap-1 border-t border-linea pt-4">
               <span className="text-gris">Total estimado</span>
-              <span className="num font-display text-3xl">{fmtMoney(total)}</span>
+              <span className="num font-display text-5xl leading-none">{fmtMoney(total)}</span>
             </div>
           )}
           {missing > 0 && showPrice && (
             <div className="flex flex-col gap-1.5">
               <div className="h-2 overflow-hidden rounded-full bg-malva" aria-hidden>
-                <div className="h-full bg-fucsia" style={{ width: `${Math.min(100, (total / settings.minPurchase) * 100)}%` }} />
+                <div className="h-full bg-tinta" style={{ width: `${Math.min(100, (total / settings.minPurchase) * 100)}%` }} />
               </div>
               <p className="text-sm text-gris">
                 Faltan {fmtMoney(missing)} para la compra mínima de {fmtMoney(settings.minPurchase)}.
               </p>
             </div>
           )}
-        </Panel>
+        </section>
 
-        <Panel as="div" className="p-5">
+        <Panel as="div" className="rounded-[4px] p-5">
           <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-            <h2 className="font-semibold">Tus datos</h2>
+            <h2 className="font-display text-2xl">Tus datos</h2>
             <Field label="Nombre" htmlFor="o-name" error={errors.name}>
               <Input id="o-name" autoComplete="name" placeholder="Tu nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>

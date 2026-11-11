@@ -60,18 +60,18 @@ function ProductoView({ id }: { id: string }) {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-16 px-4 py-6">
-      <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:gap-12">
-        <div className="flex flex-col gap-3">
+      <div className="grid gap-8 md:grid-cols-[1.1fr_1fr] md:gap-14">
+        <div className="flex flex-col gap-3 md:sticky md:top-20 md:self-start">
           <Link href="/catalogo" className="inline-flex min-h-11 w-fit items-center gap-2 text-sm font-semibold text-gris hover:text-tinta">
             <ArrowLeftIcon size={16} /> Catálogo
           </Link>
-          <div className="overflow-hidden rounded-2xl">
+          <div className="overflow-hidden rounded-[4px]">
             <ProductImage product={product} index={img} />
           </div>
           {product.images.length > 1 && (
             <div className="flex gap-2" role="group" aria-label="Fotos">
               {product.images.map((_, i) => (
-                <button key={i} type="button" onClick={() => setImg(i)} aria-label={`Foto ${i + 1}`} aria-pressed={img === i} className={clsx("w-16 overflow-hidden rounded-lg border-2", img === i ? "border-fucsia" : "border-transparent")}>
+                <button key={i} type="button" onClick={() => setImg(i)} aria-label={`Foto ${i + 1}`} aria-pressed={img === i} className={clsx("w-16 overflow-hidden rounded-[4px] border-2", img === i ? "border-tinta" : "border-transparent")}>
                   <ProductImage product={product} index={i} />
                 </button>
               ))}
@@ -79,12 +79,15 @@ function ProductoView({ id }: { id: string }) {
           )}
         </div>
 
-        <div className="flex flex-col gap-6 md:pt-14">
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-gris">
-              {product.category} · <span className="num">{product.code}</span>
+        <div className="flex flex-col gap-8 md:pt-14">
+          <div className="flex flex-col gap-4">
+            <p className="flex gap-3 text-sm text-gris">
+              <Link href={`/catalogo?cat=${encodeURIComponent(product.category)}`} className="font-semibold text-tinta underline-offset-4 hover:underline">
+                {product.category}
+              </Link>
+              <span className="num">{product.code}</span>
             </p>
-            <h1 className="font-display text-4xl leading-tight md:text-5xl">{product.name}</h1>
+            <h1 className="font-display text-[clamp(2.6rem,7vw,4.6rem)] leading-[0.95] tracking-[-0.02em]">{product.name}</h1>
             <div>
               {showPrice ? (
                 <PriceTag value={`${fmtMoney(price)} c/u`} size="lg" tone="accent" />
@@ -94,16 +97,16 @@ function ProductoView({ id }: { id: string }) {
                 </Link>
               )}
             </div>
-            {product.description && <p className="text-gris max-w-[55ch]">{product.description}</p>}
+            {product.description && <p className="max-w-[50ch] text-lg leading-relaxed text-gris">{product.description}</p>}
           </div>
 
           <section aria-labelledby="t-curva" className="flex flex-col gap-4">
-            <h2 id="t-curva" className="font-semibold">
+            <h2 id="t-curva" className="border-t border-tinta pt-4 font-display text-2xl">
               Cantidades por talle
             </h2>
             {product.variants.length === 0 && <p className="text-gris">Sin talles cargados. Consultanos por WhatsApp.</p>}
             {colors.map((color) => (
-              <div key={color} className="flex flex-col gap-2 rounded-2xl border border-linea bg-papel p-4">
+              <div key={color} className="flex flex-col gap-2 rounded-[4px] border border-linea bg-papel p-4">
                 {colors.length > 1 || color !== "Único" ? <h3 className="font-semibold">{color}</h3> : null}
                 <ul className="flex flex-col divide-y divide-linea">
                   {sizes.map((size) => {
@@ -128,7 +131,7 @@ function ProductoView({ id }: { id: string }) {
           </section>
 
           <div className="sticky bottom-3 z-10 flex flex-col gap-2 rounded-2xl bg-lienzo/95 py-2 backdrop-blur md:static md:bg-transparent md:p-0">
-            <Button size="lg" variant="primary" disabled={units === 0} onClick={add} className="w-full">
+            <Button size="lg" variant={units === 0 ? "primary" : "accent"} disabled={units === 0} onClick={add} className="w-full">
               {units === 0 ? "Elegí cantidades para agregar" : `Agregar ${units} ${units === 1 ? "unidad" : "unidades"}${showPrice ? ` · ${fmtMoney(units * price)}` : ""}`}
             </Button>
           </div>
@@ -137,10 +140,10 @@ function ProductoView({ id }: { id: string }) {
 
       {related.length > 0 && (
         <section aria-labelledby="t-rel" className="flex flex-col gap-6">
-          <h2 id="t-rel" className="font-display text-3xl">
+          <h2 id="t-rel" className="border-t border-tinta pt-4 font-display text-[clamp(2rem,5vw,3.2rem)] leading-none">
             Más {product.category.toLowerCase()}
           </h2>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />
             ))}

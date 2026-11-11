@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
+
+# Skills de diseño instaladas localmente (no son parte de la tienda)
+.agents/
+.claude/skills/
+skills-lock.json

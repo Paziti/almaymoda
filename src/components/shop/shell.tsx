@@ -46,7 +46,7 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
       )}
       <header className="sticky top-0 z-30 border-b border-linea bg-lienzo/95 backdrop-blur supports-[backdrop-filter]:bg-lienzo/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-1 px-3 sm:gap-2 sm:px-4">
-          <Link href="/" className="mr-auto text-[1.45rem] leading-none sm:text-[1.75rem]" aria-label="Inicio">
+          <Link href="/" className="mr-auto text-[1.7rem] leading-none sm:text-[2.1rem]" aria-label="Inicio">
             <Wordmark />
           </Link>
           <nav aria-label="Principal" className="flex items-center gap-0.5 sm:gap-1">
@@ -79,31 +79,36 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
         {hydrated ? children : <Spinner label="Cargando catálogo" />}
       </main>
 
-      <footer className="mt-20 border-t border-linea">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-[1.4fr_1fr]">
-          <div className="flex flex-col gap-3">
-            <Wordmark className="text-4xl" />
-            <p className="text-gris max-w-sm">Venta por mayor. Elegí talles y cantidades en el catálogo y mandanos el pedido por WhatsApp.</p>
-            {settings.address && <p className="text-gris">{settings.address}</p>}
-          </div>
-          <div className="flex flex-col gap-2 sm:items-end">
-            {settings.instagram && (
-              <a href={settings.instagram} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 font-semibold hover:text-fucsia">
-                <InstagramLogoIcon size={22} /> @mayorista_almaymoda
-              </a>
-            )}
-            {settings.whatsapp && (
-              <a href={whatsappUrl(settings.whatsapp, "Hola! Quería hacer una consulta.")} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 font-semibold hover:text-fucsia">
-                <WhatsappLogoIcon size={22} /> WhatsApp
-              </a>
-            )}
-            <div className="flex items-center gap-2 sm:justify-end">
-              <Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-gris hover:text-tinta">
-                Panel de dueños
-              </Link>
-              <ThemeToggle className="inline-flex size-11 items-center justify-center rounded-xl text-gris hover:bg-malva sm:hidden" />
+      <footer className="banda mt-24 overflow-hidden">
+        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-8 pt-14">
+          <div className="grid gap-8 sm:grid-cols-[1.4fr_1fr]">
+            <div className="flex flex-col gap-3">
+              <p className="max-w-sm text-lg">Venta por mayor. Elegí talles y cantidades en el catálogo y mandanos el pedido por WhatsApp.</p>
+              {settings.address && <p className="text-gris">{settings.address}</p>}
+            </div>
+            <div className="flex flex-col gap-1 sm:items-end">
+              {settings.instagram && (
+                <a href={settings.instagram} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 font-semibold underline-offset-4 hover:underline">
+                  <InstagramLogoIcon size={22} /> @mayorista_almaymoda
+                </a>
+              )}
+              {settings.whatsapp && (
+                <a href={whatsappUrl(settings.whatsapp, "Hola! Quería hacer una consulta.")} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 font-semibold underline-offset-4 hover:underline">
+                  <WhatsappLogoIcon size={22} /> WhatsApp
+                </a>
+              )}
+              <div className="flex items-center gap-2 sm:justify-end">
+                <Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-gris hover:text-tinta">
+                  Panel de dueños
+                </Link>
+                <ThemeToggle className="inline-flex size-11 items-center justify-center rounded-xl text-gris hover:bg-malva sm:hidden" />
+              </div>
             </div>
           </div>
+          {/* Masthead: el nombre de la marca como cabecera de revista */}
+          <Link href="/" aria-label="Volver al inicio" className="block border-t border-linea pt-4">
+            <Wordmark className="block break-words pb-[0.12em] text-[clamp(4rem,17vw,13.5rem)] leading-[1]" />
+          </Link>
         </div>
       </footer>
     </div>

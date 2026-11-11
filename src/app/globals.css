@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/* dark: sigue el selector de tema (data-theme) y, si no se eligió nada, la preferencia del sistema */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme="light"]) *) {
+      @slot;
+    }
+  }
+}
+
 /*
   almaymoda: tokens de diseño (ver DESIGN.md para el porqué de cada decisión).
   Tinta berenjena + lienzo rosado muy claro + un solo acento frambuesa.
@@ -23,6 +35,14 @@
   --peligro: #b3261e;
   --peligro-suave: #fbe6e4;
   --whatsapp: #1f7a4d;
+  /* Franja berenjena: el momento de contraste de la tienda (tinta invertida, no un color nuevo) */
+  --banda: #221b26;
+  --sobre-banda: #fbf9f8;
+  --banda-gris: #c4b8c2;
+  --banda-linea: #3d3343;
+  /* Base de las fotos y siluetas: no cambia dentro de la franja oscura */
+  --foto: #f3edf1;
+  --foto-texto: #5b525e;
   color-scheme: light;
 }
 
@@ -46,6 +66,12 @@
     --peligro: #f28b82;
     --peligro-suave: #3c1a18;
     --whatsapp: #5fd497;
+    --banda: #2a1d2f;
+    --sobre-banda: #f3ecf1;
+    --banda-gris: #b6aab4;
+    --banda-linea: #46374c;
+    --foto: #2a222e;
+    --foto-texto: #cfc4cd;
     color-scheme: dark;
   }
 }
@@ -69,6 +95,12 @@
   --peligro: #f28b82;
   --peligro-suave: #3c1a18;
   --whatsapp: #5fd497;
+  --banda: #2a1d2f;
+  --sobre-banda: #f3ecf1;
+  --banda-gris: #b6aab4;
+  --banda-linea: #46374c;
+  --foto: #2a222e;
+    --foto-texto: #cfc4cd;
   color-scheme: dark;
 }
 
@@ -152,6 +184,53 @@ h1, h2, h3 {
 }
 .hang-tag[data-tone="accent"]::before {
   background: var(--sobre-fucsia);
+}
+
+/*
+  Franja oscura: redefine los tokens dentro de la sección, así tarjetas, etiquetas
+  y textos se invierten sin clases especiales. Las fotos usan --foto, que no cambia.
+*/
+.banda {
+  --tinta: var(--sobre-banda);
+  --lienzo: var(--banda);
+  --gris: var(--banda-gris);
+  --linea: var(--banda-linea);
+  --linea-fuerte: var(--banda-linea);
+  --malva: var(--banda-linea);
+  --alerta: #e9b55c;
+  --fucsia: #f07aa8;
+  --sobre-fucsia: #2a0f1c;
+  background: var(--banda);
+  color: var(--sobre-banda);
+}
+
+/* Silueta sin foto: el fondo toma el color real de la prenda, muy diluido */
+.foto-tinte {
+  background: color-mix(in oklab, var(--swatch, var(--linea-fuerte)) 26%, var(--foto));
+}
+
+/* Numerales de la secuencia de pedido: contorno, para que el número sea forma y no ruido */
+.numeral {
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--tinta);
+}
+
+/* Entrada de la tapa: el titular sube desde una máscara (único momento de movimiento automático) */
+@keyframes subir {
+  from { transform: translateY(105%); }
+  to { transform: translateY(0); }
+}
+.linea-tapa {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+.linea-tapa > span {
+  display: block;
+  animation: subir 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.linea-tapa:nth-child(2) > span {
+  animation-delay: 0.12s;
 }
 
 /* Inputs numéricos sin flechas: se usan steppers propios con área táctil de 44px */

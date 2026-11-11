@@ -1,9 +1,10 @@
 "use client";
 
 import clsx from "clsx";
+import type { CSSProperties } from "react";
 import type { Product } from "@/lib/types";
 
-/* Siluetas para artículos sin foto: muestran el tipo de prenda y el color, y se rotulan como "Sin foto". */
+/* Siluetas para artículos sin foto: muestran el tipo de prenda y su color real, y se rotulan como "Sin foto". */
 const SHAPES: Record<string, string> = {
   remera: "M36 22 L22 28 L12 46 L24 52 L28 44 L28 104 L72 104 L72 44 L76 52 L88 46 L78 28 L64 22 C61 30 39 30 36 22 Z",
   top: "M38 24 L38 34 C30 40 28 48 30 58 L30 102 L70 102 L70 58 C72 48 70 40 62 34 L62 24 L58 24 L56 34 C52 37 48 37 44 34 L42 24 Z",
@@ -33,28 +34,35 @@ export function ProductImage({
   className,
   sizes = "md",
   showLabel = true,
+  aspect = "aspect-[4/5]",
 }: {
   product: Pick<Product, "images" | "name" | "category" | "swatch">;
   index?: number;
   className?: string;
   sizes?: "sm" | "md";
   showLabel?: boolean;
+  aspect?: string;
 }) {
   const src = product.images[index];
   if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt={product.name} className={clsx("aspect-[4/5] w-full object-cover bg-malva", className)} loading="lazy" decoding="async" />
+      <img src={src} alt={product.name} className={clsx(aspect, "w-full object-cover bg-[var(--foto)]", className)} loading="lazy" decoding="async" />
     );
   }
   const fill = product.swatch ?? "var(--linea-fuerte)";
   return (
-    <div role="img" aria-label={`${product.name}, sin foto`} className={clsx("relative aspect-[4/5] w-full bg-malva overflow-hidden", className)}>
-      <svg viewBox="0 0 100 125" className="absolute inset-0 m-auto h-[78%] w-[78%]" aria-hidden="true">
-        <path d={shapeFor(product.category)} fill={fill} stroke="var(--tinta)" strokeOpacity="0.22" strokeWidth="1.2" strokeLinejoin="round" />
+    <div
+      role="img"
+      aria-label={`${product.name}, sin foto`}
+      className={clsx("foto-tinte relative w-full overflow-hidden", aspect, className)}
+      style={{ "--swatch": fill } as CSSProperties}
+    >
+      <svg viewBox="0 0 100 125" className="absolute inset-0 m-auto h-[80%] w-[80%] drop-shadow-[0_10px_14px_rgb(34_27_38/0.14)]" aria-hidden="true">
+        <path d={shapeFor(product.category)} fill={fill} stroke="#221b26" strokeOpacity="0.28" strokeWidth="1.1" strokeLinejoin="round" />
       </svg>
       {showLabel && sizes === "md" && (
-        <span className="absolute right-2 top-2 rounded-md bg-papel/85 px-1.5 py-0.5 text-[0.7rem] font-semibold text-gris">Sin foto</span>
+        <span className="absolute right-2 top-2 rounded-md bg-[var(--foto)]/90 px-1.5 py-0.5 text-[0.7rem] font-semibold text-[var(--foto-texto)]">Sin foto</span>
       )}
     </div>
   );

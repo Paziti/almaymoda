@@ -58,10 +58,10 @@ function Catalogo() {
   const filtered = !!(q || cat || size);
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="font-display text-5xl">{cat || "Catálogo"}</h1>
-        <p className="text-gris num">{list.length === 1 ? "1 artículo" : `${list.length} artículos`}</p>
+    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-8 pt-8 md:pt-12">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-tinta pb-4">
+        <h1 className="font-display text-[clamp(3.2rem,11vw,7.5rem)] leading-[0.88] tracking-[-0.03em]">{cat || "Catálogo"}</h1>
+        <p className="num pb-2 text-gris">{list.length === 1 ? "1 artículo" : `${list.length} artículos`}</p>
       </div>
 
       <div className="flex flex-col gap-4">
@@ -69,14 +69,17 @@ function Catalogo() {
           <MagnifyingGlassIcon size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gris" />
           <Input type="search" aria-label="Buscar artículos" placeholder="Buscar por nombre, código o color" value={q} onChange={(e) => setQ(e.target.value)} className="pl-11" />
         </div>
-        <div role="group" aria-label="Categorías" className="scroll-x -mx-4 flex gap-2 px-4 pb-1">
+        <div role="group" aria-label="Categorías" className="scroll-x -mx-4 flex gap-x-6 px-4 pb-1 [scrollbar-width:none]">
           {["", ...cats].map((c) => (
             <button
               key={c || "todas"}
               type="button"
               aria-pressed={cat === c}
               onClick={() => setCat(c)}
-              className={clsx("min-h-10 shrink-0 rounded-full border px-4 text-sm font-semibold transition-colors", cat === c ? "border-tinta bg-tinta text-lienzo" : "border-linea-fuerte bg-papel hover:bg-malva")}
+              className={clsx(
+                "min-h-11 shrink-0 border-b-2 font-display text-2xl leading-none transition-colors",
+                cat === c ? "border-tinta italic text-tinta" : "border-transparent text-gris hover:text-tinta",
+              )}
             >
               {c || "Todas"}
             </button>
@@ -104,7 +107,7 @@ function Catalogo() {
       </div>
 
       {list.length ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
           {list.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
