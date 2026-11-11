@@ -93,7 +93,7 @@ export default function PedidosPage() {
                             </ButtonLink>
                           )}
                           {remito && (
-                            <ButtonLink href={`/admin/remitos/${remito.id}`} variant="secondary">
+                            <ButtonLink href={`/admin/remitos/ver?id=${remito.id}`} variant="secondary">
                               Ver remito
                             </ButtonLink>
                           )}

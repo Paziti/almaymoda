@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 const noopSubscribe = () => () => {};
@@ -15,7 +15,7 @@ import { Badge, Button, ButtonLink, ConfirmButton, EmptyState, Panel } from "@/c
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 export default function RemitoPage() {
-  const { id } = useParams<{ id: string }>();
+  const id = useSearchParams().get("id") ?? "";
   const remito = useDB((s) => s.remitos.find((r) => r.id === id));
   const settings = useDB((s) => s.settings);
   const setStatus = useDB((s) => s.setRemitoStatus);

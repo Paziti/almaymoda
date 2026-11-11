@@ -119,7 +119,7 @@ export default function PedidoPage() {
         <ul className="flex flex-col divide-y divide-linea rounded-2xl border border-linea bg-papel">
           {lines.map((l) => (
             <li key={l.variantId} className="flex gap-3 p-3 sm:gap-4">
-              <Link href={`/producto/${l.p.id}`} className="w-20 shrink-0 overflow-hidden rounded-xl sm:w-24">
+              <Link href={`/producto?id=${l.p.id}`} className="w-20 shrink-0 overflow-hidden rounded-xl sm:w-24">
                 <ProductImage product={l.p} sizes="sm" />
               </Link>
               <div className="flex min-w-0 flex-1 flex-col gap-2">

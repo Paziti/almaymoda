@@ -72,7 +72,7 @@ interface PdfItem {
 
 async function parsePdf(file: File): Promise<ParseResult> {
   const pdfjs = await import("pdfjs-dist");
-  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
+  pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/pdf.worker.min.mjs`;
   const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
   const lines: PdfItem[][] = [];
   for (let pageNo = 1; pageNo <= doc.numPages; pageNo++) {

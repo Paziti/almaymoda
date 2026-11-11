@@ -1,12 +1,12 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useDB } from "@/lib/store";
 import { ProductForm } from "@/components/admin/product-form";
 import { ButtonLink, EmptyState } from "@/components/ui";
 
 export default function Page() {
-  const { id } = useParams<{ id: string }>();
+  const id = useSearchParams().get("id") ?? "";
   const product = useDB((s) => s.products.find((p) => p.id === id));
   if (!product) {
     return (

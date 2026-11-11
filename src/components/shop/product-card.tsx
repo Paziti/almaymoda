@@ -24,7 +24,7 @@ export function ProductCard({ product }: { product: Product }) {
   const sizes = [...new Set(product.variants.filter((v) => v.stock > 0).map((v) => v.size))];
 
   return (
-    <Link href={`/producto/${product.id}`} className="group flex flex-col gap-2.5 min-w-0 rounded-2xl">
+    <Link href={`/producto?id=${product.id}`} className="group flex flex-col gap-2.5 min-w-0 rounded-2xl">
       <div className="relative overflow-hidden rounded-2xl">
         <ProductImage product={product} showLabel={stock > 0} className="transition-transform duration-500 group-hover:scale-[1.03]" />
         {stock <= 0 && <span className="absolute inset-x-0 top-0 bg-tinta/85 py-1.5 text-center text-sm font-semibold text-lienzo">Sin stock</span>}

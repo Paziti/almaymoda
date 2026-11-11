@@ -110,7 +110,7 @@ function Builder() {
       discountStock,
     );
     toast.success(`Remito N° ${remito.number} generado`);
-    router.replace(`/admin/remitos/${remito.id}`);
+    router.replace(`/admin/remitos/ver?id=${remito.id}`);
   };
 
   const setLine = (key: string, patch: Partial<Line>) => setLines((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)));

@@ -120,7 +120,7 @@ export default function AdminHome() {
             <ul className="divide-y divide-linea">
               {restock.map(({ p, t }) => (
                 <li key={p.id}>
-                  <Link href={`/admin/productos/${p.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-malva/50">
+                  <Link href={`/admin/productos/editar?id=${p.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-malva/50">
                     <div className="w-10 shrink-0 overflow-hidden rounded-lg">
                       <ProductImage product={p} sizes="sm" />
                     </div>

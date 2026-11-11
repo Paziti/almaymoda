@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import clsx from "clsx";
@@ -16,7 +16,12 @@ import { ProductImage } from "@/components/product-image";
 import { ProductCard, usePriceVisible } from "@/components/shop/product-card";
 
 export default function ProductoPage() {
-  const { id } = useParams<{ id: string }>();
+  // Ruta única con ?id=: la key reinicia cantidades y foto al pasar de un artículo a otro.
+  const id = useSearchParams().get("id") ?? "";
+  return <ProductoView key={id} id={id} />;
+}
+
+function ProductoView({ id }: { id: string }) {
   const router = useRouter();
   const product = useDB((s) => s.products.find((p) => p.id === id && p.active));
   const all = useDB((s) => s.products);

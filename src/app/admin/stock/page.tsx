@@ -140,7 +140,7 @@ export default function StockPage() {
               {selected.variants.length === 0 ? (
                 <p className="text-gris">
                   Este artículo no tiene talles cargados.{" "}
-                  <Link href={`/admin/productos/${selected.id}`} className="font-semibold text-fucsia underline">
+                  <Link href={`/admin/productos/editar?id=${selected.id}`} className="font-semibold text-fucsia underline">
                     Agregar talles
                   </Link>
                 </p>

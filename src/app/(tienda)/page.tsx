@@ -65,7 +65,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.12 * i, duration: 0.6, ease: [0.2, 0.7, 0.2, 1] }}
               >
-                <Link href={`/producto/${p.id}`} className="group relative block overflow-hidden rounded-2xl">
+                <Link href={`/producto?id=${p.id}`} className="group relative block overflow-hidden rounded-2xl">
                   <ProductImage product={p} showLabel={false} className="transition-transform duration-500 group-hover:scale-[1.03]" />
                   <span className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)]">
                     <PriceTag value={showPrice ? fmtMoney(pricer(p)) : p.code} size="sm" tone={i === 1 ? "accent" : undefined} />
