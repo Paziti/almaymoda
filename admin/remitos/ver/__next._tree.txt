@@ -1,0 +1,9 @@
+:HL["/almaymoda/_next/static/chunks/0x3j_sfoamudo.css","style"]
+:HL["/almaymoda/_next/static/media/cb4b92673aedbbad-s.p.0-95eo-012xnf.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/almaymoda/_next/static/media/d90dd95b053d9495-s.p.3r2y_bth_sjsm.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+:HL["/almaymoda/_next/static/media/dcfedef55b10026d-s.p.40m0sdlh8l0dz.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
+4:[["children",{"s":"__PAGE__","h":160}]]
+3:[["children",{"s":"ver","h":96,"c":"$Q4"}]]
+2:[["children",{"s":"remitos","h":96,"c":"$Q3"}]]
+1:[["children",{"s":"admin","h":96,"c":"$Q2"}]]
+0:{"b":"AyHSWVa-FrN8KUKbscvJt","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
