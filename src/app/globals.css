@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+/*
+  almaymoda: tokens de diseño (ver DESIGN.md para el porqué de cada decisión).
+  Tinta berenjena + lienzo rosado muy claro + un solo acento frambuesa.
+*/
+:root {
+  --lienzo: #fbf9f8;
+  --papel: #ffffff;
+  --tinta: #221b26;
+  --gris: #645b67;
+  --malva: #f1e9ee;
+  --linea: #e4d9e0;
+  --linea-fuerte: #cdbfc8;
+  --fucsia: #b8326a;
+  --fucsia-hover: #9c2557;
+  --fucsia-suave: #f8e5ed;
+  --sobre-fucsia: #ffffff;
+  --ok: #2b7a57;
+  --ok-suave: #e3f2ea;
+  --alerta: #94600b;
+  --alerta-suave: #fbf0da;
+  --peligro: #b3261e;
+  --peligro-suave: #fbe6e4;
+  --whatsapp: #1f7a4d;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --lienzo: #17121a;
+    --papel: #211a25;
+    --tinta: #f3ecf1;
+    --gris: #b6aab4;
+    --malva: #2c2330;
+    --linea: #3a2f3f;
+    --linea-fuerte: #54465a;
+    --fucsia: #f07aa8;
+    --fucsia-hover: #f597bb;
+    --fucsia-suave: #3a1f2c;
+    --sobre-fucsia: #2a0f1c;
+    --ok: #6ccb9f;
+    --ok-suave: #173326;
+    --alerta: #e9b55c;
+    --alerta-suave: #3a2c12;
+    --peligro: #f28b82;
+    --peligro-suave: #3c1a18;
+    --whatsapp: #5fd497;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --lienzo: #17121a;
+  --papel: #211a25;
+  --tinta: #f3ecf1;
+  --gris: #b6aab4;
+  --malva: #2c2330;
+  --linea: #3a2f3f;
+  --linea-fuerte: #54465a;
+  --fucsia: #f07aa8;
+  --fucsia-hover: #f597bb;
+  --fucsia-suave: #3a1f2c;
+  --sobre-fucsia: #2a0f1c;
+  --ok: #6ccb9f;
+  --ok-suave: #173326;
+  --alerta: #e9b55c;
+  --alerta-suave: #3a2c12;
+  --peligro: #f28b82;
+  --peligro-suave: #3c1a18;
+  --whatsapp: #5fd497;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-lienzo: var(--lienzo);
+  --color-papel: var(--papel);
+  --color-tinta: var(--tinta);
+  --color-gris: var(--gris);
+  --color-malva: var(--malva);
+  --color-linea: var(--linea);
+  --color-linea-fuerte: var(--linea-fuerte);
+  --color-fucsia: var(--fucsia);
+  --color-fucsia-hover: var(--fucsia-hover);
+  --color-fucsia-suave: var(--fucsia-suave);
+  --color-sobre-fucsia: var(--sobre-fucsia);
+  --color-ok: var(--ok);
+  --color-ok-suave: var(--ok-suave);
+  --color-alerta: var(--alerta);
+  --color-alerta-suave: var(--alerta-suave);
+  --color-peligro: var(--peligro);
+  --color-peligro-suave: var(--peligro-suave);
+  --color-whatsapp: var(--whatsapp);
+  --font-sans: var(--font-figtree), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-bodoni), "Didot", Georgia, serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--lienzo);
+  color: var(--tinta);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--fucsia);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Etiqueta colgante: el motivo de identidad. Precios, números de remito y contador del pedido. */
+.hang-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--tinta);
+  color: var(--lienzo);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0.3rem 0.75rem 0.3rem 1.35rem;
+  border-radius: 3px 8px 8px 3px;
+  clip-path: polygon(0.6rem 0, 100% 0, 100% 100%, 0.6rem 100%, 0 50%);
+}
+.hang-tag::before {
+  content: "";
+  position: absolute;
+  left: 0.62rem;
+  top: 50%;
+  width: 0.3rem;
+  height: 0.3rem;
+  margin-top: -0.15rem;
+  border-radius: 999px;
+  background: var(--lienzo);
+}
+.hang-tag[data-tone="accent"] {
+  background: var(--fucsia);
+  color: var(--sobre-fucsia);
+}
+.hang-tag[data-tone="accent"]::before {
+  background: var(--sobre-fucsia);
+}
+
+/* Inputs numéricos sin flechas: se usan steppers propios con área táctil de 44px */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+dialog::backdrop {
+  background: rgb(23 18 26 / 0.45);
+}
+
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
