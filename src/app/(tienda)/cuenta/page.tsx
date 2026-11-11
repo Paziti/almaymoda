@@ -101,7 +101,10 @@ export default function CuentaPage() {
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              if (digits.length < 8) return setError("Escribí tu teléfono con código de área.");
+              if (digits.length < 8) {
+                document.getElementById("c-phone")?.focus();
+                return setError("Escribí tu teléfono con código de área.");
+              }
               setError("");
               const c = findByPhone();
               if (c) login(c.id);
@@ -109,7 +112,7 @@ export default function CuentaPage() {
             }}
           >
             <Field label="Teléfono / WhatsApp" htmlFor="c-phone" error={error}>
-              <Input id="c-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="11 2345 6789" value={phone} onChange={(e) => setPhone(e.target.value)} />
+              <Input id="c-phone" aria-invalid={!!error} aria-describedby={error ? "c-phone-error" : undefined} type="tel" inputMode="tel" autoComplete="tel" placeholder="11 2345 6789" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </Field>
             <Button type="submit" size="lg">
               Continuar
@@ -121,7 +124,10 @@ export default function CuentaPage() {
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              if (!form.name.trim()) return setError("Escribí tu nombre.");
+              if (!form.name.trim()) {
+                document.getElementById("r-name")?.focus();
+                return setError("Escribí tu nombre.");
+              }
               const c = { id: uid("c"), name: form.name.trim(), business: form.business, city: form.city, email: form.email, phone, address: "", cuit: "", notes: "Alta desde la tienda", createdAt: Date.now() };
               saveClient(c);
               login(c.id);
@@ -129,7 +135,7 @@ export default function CuentaPage() {
           >
             <p className="text-sm text-gris">Es tu primera vez con el {phone}. Completá tus datos.</p>
             <Field label="Nombre" htmlFor="r-name" error={error}>
-              <Input id="r-name" autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input id="r-name" aria-invalid={!!error} aria-describedby={error ? "r-name-error" : undefined} autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>
             <Field label="Negocio" htmlFor="r-bus" hint="Opcional">
               <Input id="r-bus" value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} />

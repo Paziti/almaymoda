@@ -152,6 +152,13 @@ h1, h2, h3 {
   font-variant-numeric: tabular-nums;
 }
 
+/* Tailwind v4 ya no pone la mano en los botones: sin ella, en la PC no parecen clickeables */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+summary {
+  cursor: pointer;
+}
+
 /* Etiqueta colgante: el motivo de identidad. Precios, números de remito y contador del pedido. */
 .hang-tag {
   position: relative;

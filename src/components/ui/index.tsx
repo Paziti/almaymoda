@@ -11,7 +11,7 @@ type Variant = "primary" | "accent" | "secondary" | "ghost" | "danger" | "whatsa
 type Size = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 font-semibold transition-colors disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap";
+  "inline-flex items-center justify-center gap-2 font-semibold transition-[color,background-color,opacity] duration-150 active:opacity-75 disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap";
 const variants: Record<Variant, string> = {
   primary: "bg-tinta text-lienzo hover:opacity-90",
   accent: "bg-fucsia text-sobre-fucsia hover:bg-fucsia-hover",
@@ -60,7 +60,7 @@ export function IconButton({ label, className, children, ...rest }: ComponentPro
 /* ---------- Formularios ---------- */
 
 const fieldBase =
-  "w-full min-h-11 rounded-xl border border-linea-fuerte bg-papel px-3.5 text-[0.95rem] text-tinta placeholder:text-gris/80 focus:border-fucsia focus:outline-none focus:ring-2 focus:ring-fucsia/25";
+  "w-full min-h-11 rounded-xl border border-linea-fuerte bg-papel px-3.5 text-[0.95rem] text-tinta placeholder:text-gris/80 focus:border-fucsia focus:outline-none focus:ring-2 focus:ring-fucsia/25 aria-[invalid=true]:border-peligro";
 
 export const Input = forwardRef<HTMLInputElement, ComponentProps<"input">>(function Input({ className, ...rest }, ref) {
   return <input ref={ref} className={clsx(fieldBase, className)} {...rest} />;
@@ -85,7 +85,13 @@ export function Field({ label, hint, error, children, className, htmlFor }: { la
         {label}
       </label>
       {children}
-      {error ? <p className="text-sm text-peligro">{error}</p> : hint ? <p className="text-sm text-gris">{hint}</p> : null}
+      {error ? (
+        <p id={htmlFor ? `${htmlFor}-error` : undefined} className="text-sm text-peligro">
+          {error}
+        </p>
+      ) : hint ? (
+        <p className="text-sm text-gris">{hint}</p>
+      ) : null}
     </div>
   );
 }

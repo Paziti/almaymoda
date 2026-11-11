@@ -80,7 +80,10 @@ export default function PedidoPage() {
     if (!form.name.trim()) errs.name = "Escribí tu nombre.";
     if (form.phone.replace(/\D/g, "").length < 8) errs.phone = "Escribí un teléfono con código de área.";
     setErrors(errs);
-    if (Object.keys(errs).length) return;
+    if (Object.keys(errs).length) {
+      document.getElementById(errs.name ? "o-name" : "o-phone")?.focus();
+      return;
+    }
 
     const digits = form.phone.replace(/\D/g, "");
     let client = clients.find((c) => c.phone.replace(/\D/g, "").endsWith(digits.slice(-8)) && digits.length >= 8);
@@ -174,10 +177,10 @@ export default function PedidoPage() {
           <form onSubmit={submit} noValidate className="flex flex-col gap-4">
             <h2 className="font-display text-2xl">Tus datos</h2>
             <Field label="Nombre" htmlFor="o-name" error={errors.name}>
-              <Input id="o-name" autoComplete="name" placeholder="Tu nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input id="o-name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "o-name-error" : undefined} autoComplete="name" placeholder="Tu nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>
             <Field label="Teléfono / WhatsApp" htmlFor="o-phone" error={errors.phone}>
-              <Input id="o-phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="11 2345 6789" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input id="o-phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "o-phone-error" : undefined} type="tel" autoComplete="tel" inputMode="tel" placeholder="11 2345 6789" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Negocio" htmlFor="o-bus" hint="Opcional">
