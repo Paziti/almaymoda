@@ -208,7 +208,7 @@ export default function PreciosPage() {
               </Button>
             </div>
           ) : (
-            <p className="rounded-xl bg-malva px-4 py-3 text-sm text-gris">
+            <p className="rounded-xl bg-piedra px-4 py-3 text-sm text-gris">
               {affected.length === 0 ? `No hay artículos en ${scopeLabel}.` : action === "quitar-coef" ? "Ningún artículo de este grupo tiene coeficiente propio." : "Escribí el valor para ver cómo quedan los precios antes de aplicar."}
             </p>
           )}

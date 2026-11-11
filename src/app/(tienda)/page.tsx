@@ -44,16 +44,16 @@ export default function Home() {
       {/* Tapa */}
       <section className="mx-auto grid w-full max-w-6xl gap-12 px-4 pb-16 pt-8 md:grid-cols-12 md:gap-6 md:pb-24 md:pt-14">
         <div className="flex flex-col gap-7 md:col-span-7 md:pt-6">
-          <h1 className="font-display text-[clamp(4.1rem,13vw,8.6rem)] font-medium leading-[0.86] tracking-[-0.03em]">
+          <h1 className="font-display text-[clamp(3.5rem,12.5vw,7.4rem)] font-medium leading-[0.86] tracking-[-0.03em]">
             <span className="linea-tapa">
-              <span>Moda</span>
+              <span>Accesorios</span>
             </span>
             <span className="linea-tapa">
               <span>por mayor</span>
             </span>
           </h1>
           <p className="max-w-[40ch] text-lg leading-relaxed text-gris md:text-xl">
-            Elegí talles y cantidades de cada artículo, armá el pedido y mandalo por WhatsApp. Te respondemos confirmando stock y forma de pago.
+            Carteras, mochilas, bolsos, billeteras, materos y térmicos. Elegí colores y cantidades, armá el pedido y mandalo por WhatsApp. Te respondemos confirmando stock y forma de pago.
           </p>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/catalogo" size="lg" variant="accent">
@@ -164,7 +164,7 @@ export default function Home() {
         </h2>
         <ol className="grid gap-10 sm:grid-cols-3 sm:gap-6 md:col-span-8">
           {[
-            ["Elegí", "Entrá a cada artículo y poné cuántas unidades querés de cada talle y color."],
+            ["Elegí", "Entrá a cada artículo y poné cuántas unidades querés de cada color."],
             ["Enviá", "En tu pedido completá nombre y teléfono y mandalo por WhatsApp con un toque."],
             ["Confirmamos", "Te respondemos con el stock confirmado, el total y la forma de pago y envío."],
           ].map(([t, d], i) => (

@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
@@ -15,27 +15,41 @@ type Sort = "nuevos" | "precio-asc" | "precio-desc" | "nombre";
 
 function Catalogo() {
   const params = useSearchParams();
-  const router = useRouter();
   const products = useDB((s) => s.products);
   const settings = useDB((s) => s.settings);
   const pricer = usePricer();
 
+  // Los filtros viven en la URL: un link compartido o el botón "atrás" muestran lo mismo.
   const cat = params.get("cat") ?? "";
-  const [q, setQ] = useState(params.get("q") ?? "");
-  const [size, setSize] = useState("");
-  const [onlyStock, setOnlyStock] = useState(true);
-  const [sort, setSort] = useState<Sort>("nuevos");
+  const size = params.get("medida") ?? "";
+  const onlyStock = params.get("stock") !== "todos";
+  const sort = (["nuevos", "precio-asc", "precio-desc", "nombre"].includes(params.get("orden") ?? "") ? params.get("orden") : "nuevos") as Sort;
+  // La búsqueda se tipea en estado local (respuesta inmediata) y se copia a la URL.
+  const [q, setQState] = useState(params.get("q") ?? "");
+
+  const setParams = (changes: Record<string, string>) => {
+    // Se parte de la URL actual y no de `params`: si dos cambios llegan seguidos, el segundo no pisa al primero.
+    const sp = new URLSearchParams(window.location.search);
+    for (const [k, v] of Object.entries(changes)) {
+      if (v) sp.set(k, v);
+      else sp.delete(k);
+    }
+    // replaceState nativo es síncrono (router.replace no) y Next lo integra con useSearchParams.
+    window.history.replaceState(null, "", `/catalogo${sp.size ? `?${sp}` : ""}`);
+  };
+  const setQ = (v: string) => {
+    setQState(v);
+    setParams({ q: v });
+  };
+  const setSize = (v: string) => setParams({ medida: v });
+  const setSort = (v: Sort) => setParams({ orden: v === "nuevos" ? "" : v });
+  const setOnlyStock = (v: boolean) => setParams({ stock: v ? "" : "todos" });
 
   const visible = products.filter((p) => p.active);
   const cats = settings.categories.filter((c) => visible.some((p) => p.category === c));
-  const sizesAvailable = settings.sizes.filter((s) => visible.some((p) => p.variants.some((v) => v.size === s && v.stock > 0)));
+  const sizesAvailable = settings.sizes.filter((s) => s !== "Único" && visible.some((p) => p.variants.some((v) => v.size === s && v.stock > 0)));
 
-  const setCat = (c: string) => {
-    const sp = new URLSearchParams(params.toString());
-    if (c) sp.set("cat", c);
-    else sp.delete("cat");
-    router.replace(`/catalogo${sp.size ? `?${sp}` : ""}`, { scroll: false });
-  };
+  const setCat = (c: string) => setParams({ cat: c });
 
   const nq = normalizeText(q);
   const list = (() => {
@@ -67,9 +81,9 @@ function Catalogo() {
       <div className="flex flex-col gap-4">
         <div className="relative">
           <MagnifyingGlassIcon size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gris" />
-          <Input type="search" aria-label="Buscar artículos" placeholder="Buscar por nombre, código o color" value={q} onChange={(e) => setQ(e.target.value)} className="pl-11" />
+          <Input type="search" name="q" autoComplete="off" spellCheck={false} aria-label="Buscar artículos" placeholder="Buscar por nombre, código o color…" value={q} onChange={(e) => setQ(e.target.value)} className="pl-11" />
         </div>
-        <div role="group" aria-label="Categorías" className="scroll-x -mx-4 flex gap-x-6 px-4 pb-1 [scrollbar-width:none]">
+        <div role="group" aria-label="Categorías" className="scroll-x sin-barra -mx-4 flex gap-x-6 px-4 pb-1">
           {["", ...cats].map((c) => (
             <button
               key={c || "todas"}
@@ -86,14 +100,16 @@ function Catalogo() {
           ))}
         </div>
         <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
-          <Select aria-label="Talle" value={size} onChange={(e) => setSize(e.target.value)} className="sm:w-40">
-            <option value="">Todos los talles</option>
-            {sizesAvailable.map((s) => (
-              <option key={s} value={s}>
-                Talle {s}
-              </option>
-            ))}
-          </Select>
+          {sizesAvailable.length > 0 && (
+            <Select aria-label="Medida" value={size} onChange={(e) => setSize(e.target.value)} className="sm:w-44">
+              <option value="">Medidas</option>
+              {sizesAvailable.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </Select>
+          )}
           <Select aria-label="Ordenar" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className="sm:w-48">
             <option value="nuevos">Más nuevos</option>
             <option value="precio-asc">Menor precio</option>
@@ -122,9 +138,8 @@ function Catalogo() {
               <Button
                 variant="secondary"
                 onClick={() => {
-                  setQ("");
-                  setSize("");
-                  setCat("");
+                  setQState("");
+                  setParams({ q: "", medida: "", cat: "" });
                 }}
               >
                 <XIcon size={16} /> Quitar filtros

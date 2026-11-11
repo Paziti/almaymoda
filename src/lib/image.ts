@@ -37,7 +37,7 @@ function alphaBounds(img: HTMLImageElement) {
   return { x: minX / scale, y: minY / scale, w: (maxX - minX + 1) / scale, h: (maxY - minY + 1) / scale };
 }
 
-/** Prenda recortada centrada sobre fondo liso con una sombra de apoyo suave. */
+/** Artículo recortado centrada sobre fondo liso con una sombra de apoyo suave. */
 function composeCutout(img: HTMLImageElement, background: string) {
   const b = alphaBounds(img);
   const c = document.createElement("canvas");

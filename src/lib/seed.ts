@@ -1,7 +1,15 @@
 import type { Client, Order, Product, Settings, Supplier, Variant } from "./types";
 
+/* Rubros reales de la cuenta de Instagram (@mayorista_almaymoda): carteras, mochilas, bolsos, billeteras, materos, térmicos y viaje. */
+export const CATEGORIAS = ["Carteras", "Bolsos", "Mochilas", "Billeteras", "Materos", "Térmicos", "Botellas", "Viaje"];
+export const MEDIDAS = ["Único", "Chico", "Mediano", "Grande", "500 ml", "750 ml", "1 L", "1,2 L"];
+
+/** Valores de la primera versión (ropa), para reconocerlos y migrarlos. */
+export const LEGACY_CATEGORIAS = ["Remeras", "Tops", "Camisas", "Jeans", "Pantalones", "Vestidos", "Polleras", "Buzos", "Camperas"];
+export const LEGACY_MEDIDAS = ["XS", "S", "M", "L", "XL", "XXL", "36", "38", "40", "42", "44", "46", "Único"];
+
 export const defaultSettings: Settings = {
-  storeName: "almaymoda",
+  storeName: "Alma y Moda",
   legalName: "",
   cuit: "",
   address: "",
@@ -18,10 +26,10 @@ export const defaultSettings: Settings = {
   nextRemito: 1,
   nextOrder: 1,
   remitoFooter: "Documento no válido como factura.",
-  photoBackground: "#F3EEF1",
+  photoBackground: "#E5DCD2",
   pin: "1234",
-  categories: ["Remeras", "Tops", "Camisas", "Jeans", "Pantalones", "Vestidos", "Polleras", "Buzos", "Camperas"],
-  sizes: ["XS", "S", "M", "L", "XL", "XXL", "36", "38", "40", "42", "44", "46", "Único"],
+  categories: CATEGORIAS,
+  sizes: MEDIDAS,
 };
 
 let n = 0;
@@ -43,9 +51,9 @@ const t0 = Date.UTC(2026, 10, 1);
 
 export function demoSuppliers(): Supplier[] {
   return [
-    { id: "s-demo-1", name: "Textil Ejemplo", contact: "", phone: "", email: "", coefficient: 1.8, notes: "Proveedor de ejemplo", demo: true },
-    { id: "s-demo-2", name: "Denim Ejemplo", contact: "", phone: "", email: "", coefficient: 1.65, notes: "Proveedor de ejemplo", demo: true },
-    { id: "s-demo-3", name: "Tejidos Ejemplo", contact: "", phone: "", email: "", coefficient: null, notes: "Usa el coeficiente general", demo: true },
+    { id: "s-demo-1", name: "Marroquinería Ejemplo", contact: "", phone: "", email: "", coefficient: 1.8, notes: "Proveedor de ejemplo", demo: true },
+    { id: "s-demo-2", name: "Importadora Ejemplo", contact: "", phone: "", email: "", coefficient: 1.65, notes: "Proveedor de ejemplo", demo: true },
+    { id: "s-demo-3", name: "Distribuidora Ejemplo", contact: "", phone: "", email: "", coefficient: null, notes: "Usa el coeficiente general", demo: true },
   ];
 }
 
@@ -53,26 +61,26 @@ type Seed = Omit<Product, "id" | "createdAt" | "updatedAt" | "images" | "active"
   coefficient?: number | null;
 };
 
-const LETTERS = ["S", "M", "L", "XL"];
-const JEANS = ["36", "38", "40", "42", "44"];
+const U = ["Único"];
+const VALIJA = ["Chico", "Mediano", "Grande"];
 
 const seeds: Seed[] = [
-  { code: "RM-1020", name: "Remera básica algodón", description: "Algodón peinado 24/1, cuello redondo, calce recto.", category: "Remeras", supplierId: "s-demo-1", cost: 4200, featured: true, swatch: "#E9E2D8", variants: grid(LETTERS, ["Blanco", "Negro", "Gris melange"], [18, 24, 20, 8, 12, 16, 10, 4, 9, 11, 7, 0]) },
-  { code: "RM-1034", name: "Remera oversize lavada", description: "Jersey con lavado a la piedra, hombro caído.", category: "Remeras", supplierId: "s-demo-1", cost: 5600, featured: false, swatch: "#B9A7A2", variants: grid(["M", "L", "XL"], ["Tiza", "Grafito"], [10, 14, 6, 8, 5, 3]) },
-  { code: "TP-2201", name: "Top lino con breteles", description: "Lino con elastizado en espalda.", category: "Tops", supplierId: "s-demo-1", cost: 6100, featured: true, swatch: "#D8C7B0", variants: grid(["S", "M", "L"], ["Natural", "Negro"], [12, 15, 9, 6, 10, 4]) },
-  { code: "TP-2210", name: "Top morley acanalado", description: "Morley de algodón con lycra, escote cuadrado.", category: "Tops", supplierId: "s-demo-3", cost: 3900, featured: false, swatch: "#C9637F", variants: grid(["Único"], ["Fucsia", "Negro", "Crudo"], [30, 22, 18]) },
-  { code: "CM-3105", name: "Camisa poplin oversize", description: "Poplin 100% algodón, botones nacarados.", category: "Camisas", supplierId: "s-demo-1", cost: 8900, featured: true, swatch: "#DCE3EA", variants: grid(["S", "M", "L"], ["Celeste", "Blanco"], [6, 9, 5, 7, 8, 2]) },
-  { code: "JN-4001", name: "Jean mom tiro alto", description: "Denim rígido 12 oz, cinco bolsillos.", category: "Jeans", supplierId: "s-demo-2", cost: 14500, featured: true, swatch: "#6F86A6", variants: grid(JEANS, ["Celeste", "Azul"], [6, 10, 12, 8, 4, 5, 9, 11, 6, 0]) },
-  { code: "JN-4012", name: "Jean wide leg", description: "Denim con elastano, pierna ancha, ruedo a la vista.", category: "Jeans", supplierId: "s-demo-2", cost: 15800, featured: false, swatch: "#3E4E6B", variants: grid(JEANS, ["Azul oscuro"], [4, 8, 9, 6, 3]) },
-  { code: "JN-4020", name: "Jean recto negro", description: "Denim negro con elastano.", category: "Jeans", supplierId: "s-demo-2", cost: 14900, featured: false, swatch: "#2C2A30", variants: grid(JEANS, ["Negro"], [2, 3, 1, 0, 0]) },
-  { code: "PN-5003", name: "Pantalón sastrero", description: "Crepe con pinzas y cintura con elástico atrás.", category: "Pantalones", supplierId: "s-demo-3", cost: 11200, featured: false, swatch: "#8C7B6B", variants: grid(["S", "M", "L", "XL"], ["Camel", "Negro"], [5, 7, 6, 3, 8, 9, 5, 2]) },
-  { code: "PN-5010", name: "Cargo gabardina", description: "Gabardina elastizada, bolsillos laterales.", category: "Pantalones", supplierId: "s-demo-3", cost: 12400, featured: true, swatch: "#7E8061", variants: grid(["S", "M", "L"], ["Verde militar", "Beige"], [7, 10, 6, 5, 6, 4]) },
-  { code: "VS-6002", name: "Vestido midi fibrana", description: "Fibrana estampada, tiras regulables.", category: "Vestidos", supplierId: "s-demo-1", cost: 13200, featured: true, swatch: "#A65D6E", variants: grid(["S", "M", "L"], ["Estampado bordó"], [8, 12, 7]) },
-  { code: "VS-6015", name: "Vestido corto morley", description: "Morley acanalado, manga larga.", category: "Vestidos", supplierId: "s-demo-3", cost: 9800, featured: false, swatch: "#4B3A4F", variants: grid(["Único"], ["Negro", "Uva"], [14, 9]) },
-  { code: "PL-7004", name: "Pollera satén midi", description: "Satén al bies con cintura elástica.", category: "Polleras", supplierId: "s-demo-1", cost: 8700, featured: false, swatch: "#C7B49B", variants: grid(["S", "M", "L"], ["Champagne", "Negro"], [6, 8, 5, 4, 6, 3]) },
-  { code: "BZ-8001", name: "Buzo frisa canguro", description: "Frisa invisible, capucha con cordón.", category: "Buzos", supplierId: "s-demo-3", cost: 12900, featured: false, swatch: "#9DA6A0", variants: grid(["M", "L", "XL"], ["Gris", "Verde agua"], [9, 11, 5, 6, 7, 2]) },
-  { code: "CP-9002", name: "Campera de jean", description: "Denim 12 oz, botones metálicos.", category: "Camperas", supplierId: "s-demo-2", cost: 21500, featured: true, swatch: "#5D7699", variants: grid(["S", "M", "L"], ["Celeste"], [4, 6, 3]) },
-  { code: "CP-9011", name: "Chaleco puffer", description: "Nylon con relleno de guata, cuello alto.", category: "Camperas", supplierId: "s-demo-3", cost: 18900, featured: false, swatch: "#2F2B35", variants: grid(["Único"], ["Negro", "Plata"], [0, 0]) },
+  { code: "CT-1102", name: "Cartera bandolera con bolsillo frontal", description: "Ecocuero, bolsillos laterales y correa regulable. 15 x 18 x 10 cm.", category: "Carteras", supplierId: "s-demo-1", cost: 9800, featured: true, swatch: "#8C3B32", variants: grid(U, ["Bordó", "Suela", "Negro"], [12, 9, 15]) },
+  { code: "CT-1120", name: "Cartera hobo de ecocuero", description: "Cierre superior, forro estampado y bolsillo interno.", category: "Carteras", supplierId: "s-demo-1", cost: 12400, featured: false, swatch: "#B08A63", variants: grid(U, ["Camel", "Negro"], [8, 6]) },
+  { code: "BL-2201", name: "Bolso tote impermeable", description: "Material transparente con necessaire interno de 16,5 x 24 x 7 cm.", category: "Bolsos", supplierId: "s-demo-1", cost: 14600, featured: true, swatch: "#CDBBA0", variants: grid(U, ["Beige", "Negro"], [10, 7]) },
+  { code: "BL-2215", name: "Bolso de mano con organizador", description: "Base reforzada, organizador interno y llavero desmontable.", category: "Bolsos", supplierId: "s-demo-3", cost: 11900, featured: false, swatch: "#6F4E37", variants: grid(U, ["Chocolate", "Tiza"], [5, 9]) },
+  { code: "MC-3001", name: "Mochila urbana porta notebook", description: "Compartimento acolchado para notebook de 15 pulgadas y puerto USB.", category: "Mochilas", supplierId: "s-demo-2", cost: 18500, featured: true, swatch: "#3D4A63", variants: grid(U, ["Azul", "Gris", "Negro"], [6, 8, 11]) },
+  { code: "MC-3018", name: "Mochila matera", description: "Bolsillo térmico lateral para el termo y portayerbera.", category: "Mochilas", supplierId: "s-demo-2", cost: 16200, featured: false, swatch: "#5E6B4F", variants: grid(U, ["Verde oliva", "Negro"], [7, 4]) },
+  { code: "BT-4005", name: "Billetera con cierre", description: "Ecocuero, doce ranuras para tarjetas y monedero.", category: "Billeteras", supplierId: "s-demo-1", cost: 5400, featured: false, swatch: "#A0522D", variants: grid(U, ["Suela", "Negro", "Rosa viejo"], [20, 18, 9]) },
+  { code: "BT-4012", name: "Tarjetero slim", description: "Formato fino con ventana para documento.", category: "Billeteras", supplierId: "s-demo-3", cost: 3200, featured: false, swatch: "#2E2A27", variants: grid(U, ["Negro", "Camel"], [25, 14]) },
+  { code: "MT-5003", name: "Matero rígido", description: "Estructura rígida, entra termo de 1 L, yerbera y azucarera.", category: "Materos", supplierId: "s-demo-3", cost: 10800, featured: true, swatch: "#7A5C3E", variants: grid(U, ["Suela", "Negro", "Verde"], [9, 6, 0]) },
+  { code: "TM-6001", name: "Vaso térmico con manija", description: "Doble pared de acero, tapa con sorbete. Mantiene frío y calor.", category: "Térmicos", supplierId: "s-demo-2", cost: 15900, featured: true, swatch: "#4FA79A", variants: grid(["1,2 L"], ["Verde agua", "Lila", "Crema"], [8, 6, 10]) },
+  { code: "TM-6014", name: "Termo de acero con pico cebador", description: "Acero inoxidable, pico cebador y manija plegable.", category: "Térmicos", supplierId: "s-demo-2", cost: 21500, featured: false, swatch: "#8D9399", variants: grid(["1 L"], ["Acero", "Negro"], [5, 3]) },
+  { code: "BO-7002", name: "Botella térmica estampada", description: "Acero con doble pared, tapa a rosca.", category: "Botellas", supplierId: "s-demo-1", cost: 8900, featured: false, swatch: "#D9578A", variants: grid(["500 ml", "750 ml"], ["Fucsia", "Blanco"], [12, 8, 10, 4]) },
+  { code: "BO-7010", name: "Botella deportiva con traba", description: "Tritán libre de BPA, pico con traba antiderrame.", category: "Botellas", supplierId: "s-demo-3", cost: 4600, featured: false, swatch: "#9BB4D6", variants: grid(["750 ml"], ["Celeste", "Lila"], [16, 11]) },
+  { code: "VJ-8001", name: "Valija rígida con ruedas 360°", description: "Policarbonato, candado con clave y manija telescópica.", category: "Viaje", supplierId: "s-demo-2", cost: 48500, featured: true, swatch: "#3B3F45", variants: grid(VALIJA, ["Grafito"], [3, 4, 2]) },
+  { code: "VJ-8020", name: "Necessaire de viaje", description: "Apertura total, bolsillos de malla y gancho para colgar.", category: "Viaje", supplierId: "s-demo-3", cost: 6200, featured: false, swatch: "#C9A9A6", variants: grid(U, ["Rosa viejo", "Negro"], [10, 8]) },
+  { code: "BL-2230", name: "Riñonera de nylon", description: "Nylon liviano, dos bolsillos con cierre y correa regulable.", category: "Bolsos", supplierId: "s-demo-1", cost: 5900, featured: false, swatch: "#2F2B35", variants: grid(U, ["Negro", "Plata"], [0, 0]) },
 ];
 
 export function demoProducts(): Product[] {
@@ -97,7 +105,7 @@ export function demoClients(): Client[] {
 
 export function demoOrders(products: Product[]): Order[] {
   const p1 = products[0];
-  const p2 = products[5];
+  const p2 = products[4];
   return [
     {
       id: "o-demo-1",
@@ -106,8 +114,8 @@ export function demoOrders(products: Product[]): Order[] {
       clientId: "c-demo-1",
       customer: { name: "Clienta de ejemplo", phone: "", business: "Local de ejemplo", city: "" },
       items: [
-        { productId: p1.id, variantId: p1.variants[1].id, code: p1.code, name: p1.name, size: p1.variants[1].size, color: p1.variants[1].color, qty: 6, unitPrice: 7600 },
-        { productId: p2.id, variantId: p2.variants[2].id, code: p2.code, name: p2.name, size: p2.variants[2].size, color: p2.variants[2].color, qty: 4, unitPrice: 24000 },
+        { productId: p1.id, variantId: p1.variants[1].id, code: p1.code, name: p1.name, size: p1.variants[1].size, color: p1.variants[1].color, qty: 6, unitPrice: 17700 },
+        { productId: p2.id, variantId: p2.variants[2].id, code: p2.code, name: p2.name, size: p2.variants[2].size, color: p2.variants[2].color, qty: 4, unitPrice: 30600 },
       ],
       notes: "Pedido de ejemplo",
       status: "nuevo",

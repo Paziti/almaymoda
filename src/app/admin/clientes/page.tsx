@@ -80,7 +80,7 @@ function Clientes() {
                 return (
                   <li key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
                     <button type="button" onClick={() => setEditing(c)} className="min-w-0 flex-1 text-left">
-                      <span className="block truncate font-semibold hover:text-fucsia">{c.name}</span>
+                      <span className="block truncate font-semibold hover:text-acento">{c.name}</span>
                       <span className="text-sm text-gris">
                         {[c.business, c.city, c.phone].filter(Boolean).join(" · ") || "Sin datos de contacto"} · {nOrders} pedidos · {nRemitos} remitos
                       </span>

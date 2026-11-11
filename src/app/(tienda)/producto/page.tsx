@@ -14,6 +14,7 @@ import { usePricer } from "@/lib/hooks";
 import { Button, ButtonLink, EmptyState, PriceTag, Stepper } from "@/components/ui";
 import { ProductImage } from "@/components/product-image";
 import { ProductCard, usePriceVisible } from "@/components/shop/product-card";
+import { variantLabel } from "@/lib/labels";
 
 export default function ProductoPage() {
   // Ruta única con ?id=: la key reinicia cantidades y foto al pasar de un artículo a otro.
@@ -43,6 +44,8 @@ function ProductoView({ id }: { id: string }) {
   const price = pricer(product);
   const colors = [...new Set(product.variants.map((v) => v.color))];
   const sizes = [...new Set(product.variants.map((v) => v.size))];
+  // Casi todos los accesorios tienen una sola medida: entonces se eligen cantidades por color.
+  const singleSize = sizes.length <= 1;
   const inCart = (vid: string) => cart.find((l) => l.productId === product.id && l.variantId === vid)?.qty ?? 0;
   const units = Object.values(qty).reduce((a, b) => a + b, 0);
   const related = all.filter((p) => p.active && p.id !== product.id && p.category === product.category && totalStock(p) > 0).slice(0, 4);
@@ -92,7 +95,7 @@ function ProductoView({ id }: { id: string }) {
               {showPrice ? (
                 <PriceTag value={`${fmtMoney(price)} c/u`} size="lg" tone="accent" />
               ) : (
-                <Link href="/cuenta" className="font-semibold text-fucsia underline underline-offset-4">
+                <Link href="/cuenta" className="font-semibold text-acento underline underline-offset-4">
                   Ingresá con tu teléfono para ver el precio
                 </Link>
               )}
@@ -101,33 +104,38 @@ function ProductoView({ id }: { id: string }) {
           </div>
 
           <section aria-labelledby="t-curva" className="flex flex-col gap-4">
-            <h2 id="t-curva" className="border-t border-tinta pt-4 font-display text-2xl">
-              Cantidades por talle
-            </h2>
-            {product.variants.length === 0 && <p className="text-gris">Sin talles cargados. Consultanos por WhatsApp.</p>}
-            {colors.map((color) => (
-              <div key={color} className="flex flex-col gap-2 rounded-[4px] border border-linea bg-papel p-4">
-                {colors.length > 1 || color !== "Único" ? <h3 className="font-semibold">{color}</h3> : null}
-                <ul className="flex flex-col divide-y divide-linea">
-                  {sizes.map((size) => {
-                    const v = product.variants.find((x) => x.color === color && x.size === size);
-                    if (!v) return null;
-                    const available = Math.max(0, v.stock - inCart(v.id));
-                    return (
-                      <li key={v.id} className="flex items-center justify-between gap-3 py-2">
-                        <div className="flex min-w-0 flex-col">
-                          <span className="font-semibold">Talle {size}</span>
-                          <span className={clsx("text-sm", v.stock <= 0 ? "text-peligro" : "text-gris")}>
-                            {v.stock <= 0 ? "Sin stock" : `${available} disponibles${inCart(v.id) ? ` · ${inCart(v.id)} en tu pedido` : ""}`}
-                          </span>
-                        </div>
-                        {v.stock > 0 && <Stepper label={`talle ${size} ${color}`} value={qty[v.id] ?? 0} max={available} onChange={(n) => setQty((q) => ({ ...q, [v.id]: n }))} />}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-tinta pt-4">
+              <h2 id="t-curva" className="font-display text-2xl">
+                {singleSize ? "Cantidades por color" : "Cantidades por medida"}
+              </h2>
+              {singleSize && sizes[0] !== "Único" && <span className="text-gris">Medida {sizes[0]}</span>}
+            </div>
+            {product.variants.length === 0 && <p className="text-gris">Sin colores cargados. Consultanos por WhatsApp.</p>}
+            {(singleSize ? [null] : colors).map((color) => {
+              const rows = product.variants.filter((v) => color === null || v.color === color);
+              return (
+                <div key={color ?? "todos"} className="flex flex-col gap-2 rounded-[4px] border border-linea bg-papel p-4">
+                  {color !== null && (colors.length > 1 || color !== "Único") ? <h3 className="font-semibold">{color}</h3> : null}
+                  <ul className="flex flex-col divide-y divide-linea">
+                    {rows.map((v) => {
+                      const available = Math.max(0, v.stock - inCart(v.id));
+                      const name = singleSize ? variantLabel("Único", v.color) : variantLabel(v.size, "Único");
+                      return (
+                        <li key={v.id} className="flex items-center justify-between gap-3 py-2">
+                          <div className="flex min-w-0 flex-col">
+                            <span className="font-semibold">{name}</span>
+                            <span className={clsx("text-sm", v.stock <= 0 ? "text-peligro" : "text-gris")}>
+                              {v.stock <= 0 ? "Sin stock" : `${available} disponibles${inCart(v.id) ? `, ${inCart(v.id)} en tu pedido` : ""}`}
+                            </span>
+                          </div>
+                          {v.stock > 0 && <Stepper label={variantLabel(v.size, v.color)} value={qty[v.id] ?? 0} max={available} onChange={(n) => setQty((q) => ({ ...q, [v.id]: n }))} />}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
           </section>
 
           <div className="sticky bottom-3 z-10 flex flex-col gap-2 rounded-2xl bg-lienzo/95 py-2 backdrop-blur md:static md:bg-transparent md:p-0">

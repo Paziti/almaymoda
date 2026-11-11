@@ -12,9 +12,9 @@ import { Button, ConfirmButton, Field, Input, Panel, Switch, Textarea } from "@/
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 const PHOTO_BGS = [
-  { value: "#F3EEF1", label: "Malva claro" },
+  { value: "#E5DCD2", label: "Piedra (color del logo)" },
   { value: "#FFFFFF", label: "Blanco" },
-  { value: "#EDEAE4", label: "Piedra" },
+  { value: "#F3EEE8", label: "Arena clara" },
   { value: "#E6ECEF", label: "Gris azulado" },
 ];
 
@@ -25,7 +25,7 @@ function ListEditor({ label, items, onChange, placeholder }: { label: string; it
       <p className="text-sm font-semibold">{label}</p>
       <div className="flex flex-wrap gap-2">
         {items.map((it) => (
-          <span key={it} className="inline-flex min-h-10 items-center gap-1 rounded-lg bg-malva pl-3 text-sm font-semibold">
+          <span key={it} className="inline-flex min-h-10 items-center gap-1 rounded-lg bg-piedra pl-3 text-sm font-semibold">
             {it}
             <button type="button" aria-label={`Quitar ${it}`} className="flex size-10 items-center justify-center rounded-lg hover:bg-linea" onClick={() => onChange(items.filter((x) => x !== it))}>
               <XIcon size={14} />
@@ -165,7 +165,7 @@ export default function AjustesPage() {
         <Panel className="flex flex-col gap-5 p-5">
           <h2 className="font-semibold">Catálogo</h2>
           <ListEditor label="Categorías" items={form.categories} onChange={(v) => set("categories", v)} placeholder="Ej: Shorts" />
-          <ListEditor label="Talles disponibles" items={form.sizes} onChange={(v) => set("sizes", v)} placeholder="Ej: 48" />
+          <ListEditor label="Medidas disponibles" items={form.sizes} onChange={(v) => set("sizes", v)} placeholder="Ej: 1,5 L" />
           <div className="flex flex-col gap-2">
             <p className="text-sm font-semibold">Fondo de las fotos recortadas por la IA</p>
             <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Fondo de las fotos">
@@ -205,7 +205,7 @@ export default function AjustesPage() {
             <Button variant="secondary" onClick={exportBackup}>
               <DownloadSimpleIcon size={18} /> Descargar respaldo
             </Button>
-            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-linea-fuerte bg-papel px-4 font-semibold hover:bg-malva">
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-linea-fuerte bg-papel px-4 font-semibold hover:bg-piedra">
               <UploadSimpleIcon size={18} /> Cargar respaldo
               <input type="file" accept="application/json,.json" className="sr-only" onChange={(e) => (importBackup(e.target.files?.[0]), (e.target.value = ""))} />
             </label>

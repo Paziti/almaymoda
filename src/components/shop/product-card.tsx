@@ -21,13 +21,14 @@ export function ProductCard({ product }: { product: Product }) {
   const showPrice = usePriceVisible();
   const low = useDB((s) => s.settings.lowStock);
   const stock = totalStock(product);
-  const sizes = [...new Set(product.variants.filter((v) => v.stock > 0).map((v) => v.size))];
+  const sizes = [...new Set(product.variants.filter((v) => v.stock > 0 && v.size !== "Único").map((v) => v.size))];
+  const colors = new Set(product.variants.filter((v) => v.stock > 0).map((v) => v.color)).size;
 
   return (
     <Link href={`/producto?id=${product.id}`} className="group flex min-w-0 flex-col gap-3 rounded-[4px]">
       <div className="relative overflow-hidden rounded-[4px]">
         <ProductImage product={product} showLabel={stock > 0} className="transition-transform duration-700 group-hover:scale-[1.04]" />
-        {stock <= 0 && <span className="absolute inset-x-0 top-0 bg-[#221b26]/85 py-1.5 text-center text-sm font-semibold text-[#fbf9f8]">Sin stock</span>}
+        {stock <= 0 && <span className="absolute inset-x-0 top-0 bg-[#241f1b]/85 py-1.5 text-center text-sm font-semibold text-[#f8f4ef]">Sin stock</span>}
         <div className="absolute bottom-2.5 left-2.5">
           <PriceTag value={showPrice ? fmtMoney(price) : "Ver precio"} size="sm" />
         </div>
@@ -36,6 +37,7 @@ export function ProductCard({ product }: { product: Product }) {
         <h3 className="font-display text-xl leading-tight underline-offset-4 group-hover:underline">{product.name}</h3>
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gris">
           <span className="num">{product.code}</span>
+          {colors > 1 && <span>{colors} colores</span>}
           {sizes.length > 0 && (
             <span className="flex flex-wrap gap-1">
               {sizes.map((s) => (

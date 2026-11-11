@@ -7,6 +7,7 @@ import { useSession } from "@/lib/session";
 import { fmtDate, fmtMoney, uid } from "@/lib/format";
 import { Badge, Button, ButtonLink, EmptyState, Field, Input, Panel } from "@/components/ui";
 import type { OrderStatus } from "@/lib/types";
+import { variantLabel } from "@/lib/labels";
 
 const statusTone: Record<OrderStatus, { label: string; tone: "acento" | "ok" | "neutral" | "peligro" }> = {
   nuevo: { label: "Recibido", tone: "acento" },
@@ -65,7 +66,7 @@ export default function CuentaPage() {
                       <ul className="text-sm text-gris">
                         {o.items.slice(0, 4).map((i, k) => (
                           <li key={k}>
-                            {i.qty} × {i.name} T.{i.size}
+                            {i.qty} × {i.name}, {variantLabel(i.size, i.color)}
                           </li>
                         ))}
                         {o.items.length > 4 && <li>y {o.items.length - 4} más</li>}
@@ -138,13 +139,13 @@ export default function CuentaPage() {
               <Input id="r-name" aria-invalid={!!error} aria-describedby={error ? "r-name-error" : undefined} autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>
             <Field label="Negocio" htmlFor="r-bus" hint="Opcional">
-              <Input id="r-bus" value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} />
+              <Input id="r-bus" name="organization" autoComplete="organization" value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} />
             </Field>
             <Field label="Ciudad" htmlFor="r-city" hint="Opcional">
-              <Input id="r-city" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+              <Input id="r-city" name="city" autoComplete="address-level2" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
             </Field>
             <Field label="Email" htmlFor="r-mail" hint="Opcional, para recibir remitos">
-              <Input id="r-mail" type="email" autoComplete="email" placeholder="email@ejemplo.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input id="r-mail" name="email" spellCheck={false} type="email" autoComplete="email" placeholder="email@ejemplo.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
             </Field>
             <div className="flex gap-2">
               <Button variant="ghost" onClick={() => setStep("phone")}>

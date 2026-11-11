@@ -12,7 +12,7 @@ export const FIELD_LABELS: Record<FieldKey, string> = {
   cost: "Costo / precio de lista",
   stock: "Stock / cantidad",
   category: "Categoría / rubro",
-  size: "Talle",
+  size: "Medida",
   color: "Color",
   description: "Detalle extra",
 };
@@ -21,7 +21,7 @@ const PATTERNS: [FieldKey, RegExp][] = [
   ["code", /^(cod|codigo|cod\.?\s*art|art|articulo|sku|ref|referencia|id\s*art|nro\s*art)/],
   ["cost", /(precio|costo|lista|importe|p\.?\s*unit|unitario|valor|neto|mayorista)/],
   ["stock", /(stock|cant|cantidad|existencia|unidades|uds|disponible)/],
-  ["size", /^(talle|talla|size|t\.)$|talle/],
+  ["size", /^(talle|talla|size|t\.|medida|tama[nñ]o|capacidad)$|talle|medida/],
   ["color", /^(color|colour|col\.?)$|color/],
   ["category", /(rubro|categoria|familia|linea|grupo|seccion|tipo)/],
   ["name", /(desc|descripcion|detalle|nombre|producto|articulo)/],

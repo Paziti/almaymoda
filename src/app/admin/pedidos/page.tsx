@@ -41,7 +41,7 @@ export default function PedidosPage() {
         {list.length === 0 ? (
           <Panel>
             <EmptyState icon={<ChatCircleTextIcon size={40} />} title={filter === "abiertos" ? "No hay pedidos para atender" : "Todavía no llegaron pedidos"}>
-              Cuando una clienta envíe su pedido desde la tienda, aparece acá con el detalle de talles y cantidades.
+              Cuando una clienta envíe su pedido desde la tienda, aparece acá con el detalle de colores y cantidades.
             </EmptyState>
           </Panel>
         ) : (
@@ -85,7 +85,7 @@ export default function PedidosPage() {
                             </li>
                           ))}
                         </ul>
-                        {o.notes && <p className="rounded-lg bg-malva px-3 py-2 text-sm">Nota: {o.notes}</p>}
+                        {o.notes && <p className="rounded-lg bg-piedra px-3 py-2 text-sm">Nota: {o.notes}</p>}
                         <div className="flex flex-wrap gap-2">
                           {open && (
                             <ButtonLink href={`/admin/remitos/nuevo?pedido=${o.id}`} variant="primary">

@@ -12,6 +12,7 @@ import type { LineItem, Order } from "@/lib/types";
 import { Button, ButtonLink, EmptyState, Field, IconButton, Input, Panel, Stepper, Textarea } from "@/components/ui";
 import { ProductImage } from "@/components/product-image";
 import { usePriceVisible } from "@/components/shop/product-card";
+import { variantLabel } from "@/lib/labels";
 
 export default function PedidoPage() {
   const cart = useSession((s) => s.cart);
@@ -69,7 +70,7 @@ export default function PedidoPage() {
   if (!lines.length) {
     return (
       <EmptyState title="Tu pedido está vacío" action={<ButtonLink href="/catalogo">Ir al catálogo</ButtonLink>}>
-        Entrá a un artículo y elegí cuántas unidades querés de cada talle.
+        Entrá a un artículo y elegí cuántas unidades querés de cada color.
       </EmptyState>
     );
   }
@@ -101,7 +102,7 @@ export default function PedidoPage() {
     const text = [
       `Hola! Soy ${form.name}${form.business ? ` (${form.business})` : ""}${form.city ? `, de ${form.city}` : ""}. Quiero hacer este pedido (N° ${order.number}):`,
       "",
-      ...items.map((i) => `• ${i.qty} × ${i.code} ${i.name} · T.${i.size}${i.color !== "Único" ? ` ${i.color}` : ""}`),
+      ...items.map((i) => `• ${i.qty} × ${i.code} ${i.name}, ${variantLabel(i.size, i.color)}`),
       "",
       `${units} unidades${showPrice ? ` · Total ${fmtMoney(total)}` : ""}`,
       form.notes ? `\nNota: ${form.notes}` : "",
@@ -130,16 +131,15 @@ export default function PedidoPage() {
                   <div className="min-w-0">
                     <p className="font-display text-xl leading-tight">{l.p.name}</p>
                     <p className="text-sm text-gris">
-                      Talle {l.v.size}
-                      {l.v.color !== "Único" && ` · ${l.v.color}`} · <span className="num">{l.p.code}</span>
+                      {variantLabel(l.v.size, l.v.color)}, <span className="num">{l.p.code}</span>
                     </p>
                   </div>
-                  <IconButton label={`Quitar ${l.p.name} talle ${l.v.size}`} onClick={() => setQty(l.productId, l.variantId, 0)} className="-mr-1 -mt-1 text-gris">
+                  <IconButton label={`Quitar ${l.p.name} ${variantLabel(l.v.size, l.v.color)}`} onClick={() => setQty(l.productId, l.variantId, 0)} className="-mr-1 -mt-1 text-gris">
                     <TrashIcon size={18} />
                   </IconButton>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Stepper size="sm" label={`${l.p.name} talle ${l.v.size}`} value={l.qty} min={1} max={l.v.stock} onChange={(n) => setQty(l.productId, l.variantId, n)} />
+                  <Stepper size="sm" label={`${l.p.name} ${variantLabel(l.v.size, l.v.color)}`} value={l.qty} min={1} max={l.v.stock} onChange={(n) => setQty(l.productId, l.variantId, n)} />
                   {showPrice && <span className="num font-semibold">{fmtMoney(l.qty * l.price)}</span>}
                 </div>
                 {l.qty > l.v.stock && <p className="text-sm text-alerta">Hay {l.v.stock} en stock.</p>}
@@ -163,7 +163,7 @@ export default function PedidoPage() {
           )}
           {missing > 0 && showPrice && (
             <div className="flex flex-col gap-1.5">
-              <div className="h-2 overflow-hidden rounded-full bg-malva" aria-hidden>
+              <div className="h-2 overflow-hidden rounded-full bg-piedra" aria-hidden>
                 <div className="h-full bg-tinta" style={{ width: `${Math.min(100, (total / settings.minPurchase) * 100)}%` }} />
               </div>
               <p className="text-sm text-gris">
@@ -177,21 +177,21 @@ export default function PedidoPage() {
           <form onSubmit={submit} noValidate className="flex flex-col gap-4">
             <h2 className="font-display text-2xl">Tus datos</h2>
             <Field label="Nombre" htmlFor="o-name" error={errors.name}>
-              <Input id="o-name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "o-name-error" : undefined} autoComplete="name" placeholder="Tu nombre" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input id="o-name" aria-invalid={!!errors.name} aria-describedby={errors.name ? "o-name-error" : undefined} autoComplete="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
             </Field>
             <Field label="Teléfono / WhatsApp" htmlFor="o-phone" error={errors.phone}>
               <Input id="o-phone" aria-invalid={!!errors.phone} aria-describedby={errors.phone ? "o-phone-error" : undefined} type="tel" autoComplete="tel" inputMode="tel" placeholder="11 2345 6789" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
             </Field>
             <div className="grid grid-cols-2 gap-3">
               <Field label="Negocio" htmlFor="o-bus" hint="Opcional">
-                <Input id="o-bus" placeholder="Nombre del local" value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} />
+                <Input id="o-bus" name="organization" autoComplete="organization" placeholder="Nombre del local…" value={form.business} onChange={(e) => setForm({ ...form, business: e.target.value })} />
               </Field>
               <Field label="Ciudad" htmlFor="o-city" hint="Opcional">
-                <Input id="o-city" autoComplete="address-level2" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                <Input id="o-city" name="city" autoComplete="address-level2" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
               </Field>
             </div>
             <Field label="Nota para el local" htmlFor="o-notes" hint="Opcional">
-              <Textarea id="o-notes" rows={2} placeholder="Ej: envío por transporte, forma de pago" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <Textarea id="o-notes" rows={2} placeholder="Ej: envío por transporte, pago por transferencia…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </Field>
             <Button type="submit" size="lg" variant="whatsapp" className="w-full">
               <WhatsappLogoIcon size={22} /> Enviar pedido por WhatsApp

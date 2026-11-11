@@ -10,16 +10,26 @@ import { useHasDemo } from "@/lib/hooks";
 import { whatsappUrl } from "@/lib/share";
 import { Spinner } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Firma, LogoMark } from "@/components/logo";
 
-export function Wordmark({ className }: { className?: string }) {
+/** Logo + nombre. Escala con el font-size del contenedor. */
+export function Wordmark({ className, nameClassName }: { className?: string; nameClassName?: string }) {
   const name = useDB((s) => s.settings.storeName);
-  return <span className={clsx("font-display italic tracking-tight", className)}>{name || "almaymoda"}</span>;
+  return (
+    <span className={clsx("inline-flex items-center gap-[0.35em]", className)}>
+      <LogoMark className="text-[1.75em]" title="" />
+      <span className={clsx("font-display tracking-tight", nameClassName)}>{name || "Alma y Moda"}</span>
+    </span>
+  );
 }
 
 export function ShopShell({ children }: { children: React.ReactNode }) {
   const hydrated = useHydrated();
   const pathname = usePathname();
-  const cartUnits = useSession((s) => s.cart.reduce((a, l) => a + l.qty, 0));
+  const cart = useSession((s) => s.cart);
+  const products = useDB((s) => s.products);
+  // Sólo cuenta líneas cuyo artículo y variante siguen existiendo (igual que la pantalla del pedido).
+  const cartUnits = cart.reduce((a, l) => (products.some((p) => p.id === l.productId && p.variants.some((v) => v.id === l.variantId)) ? a + l.qty : a), 0);
   const settings = useDB((s) => s.settings);
   const hasDemo = useHasDemo();
 
@@ -34,7 +44,7 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
         Saltar al contenido
       </a>
       {hydrated && hasDemo && (
-        <div className="bg-fucsia-suave text-tinta text-sm">
+        <div className="bg-acento-suave text-tinta text-sm">
           <p className="mx-auto max-w-6xl px-4 py-2 text-center">
             Estás viendo artículos de ejemplo. Se reemplazan desde el{" "}
             <Link href="/admin" className="font-semibold underline underline-offset-2">
@@ -46,8 +56,8 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
       )}
       <header className="sticky top-0 z-30 border-b border-linea bg-lienzo/95 backdrop-blur supports-[backdrop-filter]:bg-lienzo/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-1 px-3 sm:gap-2 sm:px-4">
-          <Link href="/" className="mr-auto text-[1.7rem] leading-none sm:text-[2.1rem]" aria-label="Inicio">
-            <Wordmark />
+          <Link href="/" className="mr-auto text-[1.35rem] leading-none sm:text-[1.6rem]" aria-label="Inicio, Alma y Moda">
+            <Wordmark nameClassName="max-[400px]:sr-only" />
           </Link>
           <nav aria-label="Principal" className="flex items-center gap-0.5 sm:gap-1">
             {nav.map((n) => {
@@ -58,14 +68,14 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
                   key={n.href}
                   href={n.href}
                   aria-current={active ? "page" : undefined}
-                  className={clsx("inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-2.5 text-[0.95rem] font-semibold hover:bg-malva sm:px-3", active && "bg-malva")}
+                  className={clsx("inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-xl px-2.5 text-[0.95rem] font-semibold hover:bg-piedra sm:px-3", active && "bg-piedra")}
                 >
                   {Icon && <Icon size={20} className="sm:hidden" aria-hidden />}
                   <span className={clsx(Icon && "max-sm:sr-only")}>{n.label}</span>
                 </Link>
               );
             })}
-            <ThemeToggle className="hidden size-11 items-center justify-center rounded-xl hover:bg-malva sm:inline-flex" />
+            <ThemeToggle className="hidden size-11 items-center justify-center rounded-xl hover:bg-piedra sm:inline-flex" />
             <Link href="/pedido" className="ml-1 inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-tinta pl-2.5 pr-1.5 sm:gap-2 sm:pl-3 sm:pr-2 text-[0.95rem] font-semibold text-lienzo hover:opacity-90" aria-label={`Mi pedido, ${cartUnits} unidades`}>
               <ShoppingBagIcon size={20} aria-hidden />
               <span className="max-sm:sr-only">Pedido</span>
@@ -83,7 +93,8 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-8 pt-14">
           <div className="grid gap-8 sm:grid-cols-[1.4fr_1fr]">
             <div className="flex flex-col gap-3">
-              <p className="max-w-sm text-lg">Venta por mayor. Elegí talles y cantidades en el catálogo y mandanos el pedido por WhatsApp.</p>
+              <p className="max-w-sm text-lg">Mayoristas de accesorios en Bahía Blanca. Elegí colores y cantidades en el catálogo y mandanos el pedido por WhatsApp.</p>
+              <p className="text-gris">Atendemos de lunes a viernes.</p>
               {settings.address && <p className="text-gris">{settings.address}</p>}
             </div>
             <div className="flex flex-col gap-1 sm:items-end">
@@ -101,13 +112,15 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
                 <Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-gris hover:text-tinta">
                   Panel de dueños
                 </Link>
-                <ThemeToggle className="inline-flex size-11 items-center justify-center rounded-xl text-gris hover:bg-malva sm:hidden" />
+                <ThemeToggle className="inline-flex size-11 items-center justify-center rounded-xl text-gris hover:bg-piedra sm:hidden" />
               </div>
             </div>
           </div>
           {/* Masthead: el nombre de la marca como cabecera de revista */}
-          <Link href="/" aria-label="Volver al inicio" className="block border-t border-linea pt-4">
-            <Wordmark className="block break-words pb-[0.12em] text-[clamp(4rem,17vw,13.5rem)] leading-[1]" />
+          {/* Masthead: el logo y la firma de la marca en grande */}
+          <Link href="/" aria-label="Volver al inicio" className="flex items-center gap-[4vw] border-t border-linea pt-6">
+            <LogoMark className="text-[clamp(5.5rem,19vw,10rem)]" title="" />
+            <Firma className="pb-[0.15em] text-[clamp(3.6rem,15vw,10.5rem)]" />
           </Link>
         </div>
       </footer>

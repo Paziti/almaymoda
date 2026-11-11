@@ -124,7 +124,7 @@ function Lista() {
                 const lvl = stockLevel(p, settings.lowStock);
                 return (
                   <li key={p.id}>
-                    <Link href={`/admin/productos/editar?id=${p.id}`} className="grid grid-cols-[56px_1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-malva/40 md:grid-cols-[56px_1fr_120px_90px_110px_130px] md:gap-4">
+                    <Link href={`/admin/productos/editar?id=${p.id}`} className="grid grid-cols-[56px_1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-piedra/40 md:grid-cols-[56px_1fr_120px_90px_110px_130px] md:gap-4">
                       <div className="row-span-2 overflow-hidden rounded-lg md:row-span-1">
                         <ProductImage product={p} sizes="sm" />
                       </div>

@@ -55,7 +55,7 @@ export default function RemitosPage() {
                 const { total, units } = remitoTotals(r);
                 return (
                   <li key={r.id}>
-                    <Link href={`/admin/remitos/ver?id=${r.id}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3.5 hover:bg-malva/40">
+                    <Link href={`/admin/remitos/ver?id=${r.id}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3.5 hover:bg-piedra/40">
                       <span className="hang-tag text-[0.8rem]">{remitoNumber(pos, r.number)}</span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-semibold">{r.customer.name || "Sin nombre"}</span>

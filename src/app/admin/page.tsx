@@ -41,16 +41,16 @@ export default function AdminHome() {
       <PageHeader title="Hoy" description={today} />
 
       <div className={`${pagePad} grid gap-3 md:grid-cols-[1.25fr_1fr_1fr_1fr]`}>
-        <Link href="/admin/productos/nuevo" className="flex min-h-28 flex-col justify-between gap-3 rounded-2xl bg-fucsia p-5 text-sobre-fucsia hover:bg-fucsia-hover">
+        <Link href="/admin/productos/nuevo" className="flex min-h-28 flex-col justify-between gap-3 rounded-2xl bg-acento p-5 text-sobre-acento hover:bg-acento-hover">
           <PlusIcon size={28} weight="bold" />
           <span>
             <span className="block font-display text-2xl">Cargar artículo</span>
-            <span className="text-sm opacity-90">Foto, talles, stock y precio</span>
+            <span className="text-sm opacity-90">Foto, colores, stock y precio</span>
           </span>
         </Link>
         {actions.map((a) => (
           <Link key={a.href} href={a.href} className="flex items-center gap-4 rounded-2xl border border-linea bg-papel p-4 hover:border-linea-fuerte md:flex-col md:items-start md:justify-between">
-            <a.icon size={26} className="shrink-0 text-fucsia" />
+            <a.icon size={26} className="shrink-0 text-acento" />
             <span className="min-w-0">
               <span className="block font-semibold">{a.label}</span>
               <span className="text-sm text-gris">{a.desc}</span>
@@ -61,7 +61,7 @@ export default function AdminHome() {
 
       {hasDemo && (
         <div className={pagePad}>
-          <p className="rounded-xl bg-fucsia-suave px-4 py-3 text-sm">
+          <p className="rounded-xl bg-acento-suave px-4 py-3 text-sm">
             Hay datos de ejemplo cargados para probar. Cuando quieran empezar con los reales, bórrenlos desde{" "}
             <Link href="/admin/ajustes#datos" className="font-semibold underline underline-offset-2">
               Ajustes
@@ -75,7 +75,7 @@ export default function AdminHome() {
         <Panel className="flex flex-col">
           <header className="flex items-center justify-between gap-3 border-b border-linea px-5 py-4">
             <h2 className="flex items-center gap-2 font-semibold">
-              <ChatCircleTextIcon size={20} className="text-fucsia" /> Pedidos web sin atender
+              <ChatCircleTextIcon size={20} className="text-acento" /> Pedidos web sin atender
             </h2>
             <Link href="/admin/pedidos" className="text-sm font-semibold text-gris hover:text-tinta">
               Ver todos
@@ -120,7 +120,7 @@ export default function AdminHome() {
             <ul className="divide-y divide-linea">
               {restock.map(({ p, t }) => (
                 <li key={p.id}>
-                  <Link href={`/admin/productos/editar?id=${p.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-malva/50">
+                  <Link href={`/admin/productos/editar?id=${p.id}`} className="flex items-center gap-3 px-5 py-2.5 hover:bg-piedra/50">
                     <div className="w-10 shrink-0 overflow-hidden rounded-lg">
                       <ProductImage product={p} sizes="sm" />
                     </div>

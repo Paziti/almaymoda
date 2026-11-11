@@ -16,7 +16,7 @@ import type {
   StockMovement,
   Supplier,
 } from "./types";
-import { defaultSettings, demoClients, demoOrders, demoProducts, demoSuppliers } from "./seed";
+import { CATEGORIAS, LEGACY_CATEGORIAS, LEGACY_MEDIDAS, MEDIDAS, defaultSettings, demoClients, demoOrders, demoProducts, demoSuppliers } from "./seed";
 import { uid } from "./format";
 
 const idbStorage: StateStorage = {
@@ -43,7 +43,7 @@ export interface DBState {
 export interface ImportChange {
   productId: string | null;
   data: Partial<Product> & { code: string };
-  /** Stock a aplicar por variante (talle/color). */
+  /** Stock a aplicar por variante (medida/color). */
   stock?: { size: string; color: string; qty: number }[];
 }
 
@@ -318,7 +318,8 @@ export const useDB = create<DBState & Actions>()(
     }),
     {
       name: "almaymoda-db",
-      version: 1,
+      version: 2,
+      migrate: (persisted, version) => (version < 2 ? migrateToAccessories(persisted as Partial<DBState>) : persisted) as DBState,
       storage: createJSONStorage(() => idbStorage),
       partialize: (s) => ({
         settings: s.settings,
@@ -337,6 +338,37 @@ export const useDB = create<DBState & Actions>()(
     },
   ),
 );
+
+const sameList = (a: string[] | undefined, b: string[]) => !!a && a.length === b.length && a.every((x, i) => x === b[i]);
+
+/**
+ * v1 → v2: la tienda es de accesorios, no de ropa. Cambia los ejemplos de ropa por los nuevos
+ * y los valores por defecto que nadie tocó. Lo que cargaron los dueños no se modifica.
+ */
+function migrateToAccessories(p: Partial<DBState>): Partial<DBState> {
+  const s = p.settings;
+  const settings = s && {
+    ...s,
+    categories: sameList(s.categories, LEGACY_CATEGORIAS) ? CATEGORIAS : s.categories,
+    sizes: sameList(s.sizes, LEGACY_MEDIDAS) ? MEDIDAS : s.sizes,
+    storeName: s.storeName === "almaymoda" ? defaultSettings.storeName : s.storeName,
+    photoBackground: s.photoBackground === "#F3EEF1" ? defaultSettings.photoBackground : s.photoBackground,
+  };
+  const hadDemo = (p.products ?? []).some((x) => x.demo);
+  if (!hadDemo) return { ...p, settings };
+  const products = demoProducts();
+  const own = <T extends { demo?: boolean }>(a: T[] | undefined) => (a ?? []).filter((x) => !x.demo);
+  return {
+    ...p,
+    settings,
+    products: [...products, ...own(p.products)],
+    suppliers: [...demoSuppliers(), ...own(p.suppliers)],
+    clients: [...demoClients(), ...own(p.clients)],
+    orders: [...demoOrders(products), ...own(p.orders)],
+    remitos: own(p.remitos),
+    movements: (p.movements ?? []).filter((m) => !m.productId.startsWith("p-demo")),
+  };
+}
 
 function stripUndefined<T extends object>(o: T): Partial<T> {
   return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;

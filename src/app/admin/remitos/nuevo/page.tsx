@@ -162,7 +162,7 @@ function Builder() {
                 <ul className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-linea bg-papel shadow-xl">
                   {results.map((p) => (
                     <li key={p.id}>
-                      <button type="button" onClick={() => (setPicking(p), setPickQty({}))} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-malva">
+                      <button type="button" onClick={() => (setPicking(p), setPickQty({}))} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-piedra">
                         <div className="w-9 shrink-0 overflow-hidden rounded-md">
                           <ProductImage product={p} sizes="sm" />
                         </div>
@@ -181,7 +181,7 @@ function Builder() {
             </div>
 
             {picking && (
-              <div className="flex flex-col gap-3 rounded-xl border border-fucsia bg-fucsia-suave/40 p-4">
+              <div className="flex flex-col gap-3 rounded-xl border border-acento bg-acento-suave/40 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="min-w-0 truncate font-semibold">
                     <span className="num text-gris">{picking.code}</span> {picking.name}
@@ -189,7 +189,7 @@ function Builder() {
                   <span className="num text-sm font-semibold">{fmtMoney(pricer(picking))} c/u</span>
                 </div>
                 {picking.variants.length === 0 ? (
-                  <p className="text-sm text-gris">Este artículo no tiene talles cargados.</p>
+                  <p className="text-sm text-gris">Este artículo no tiene colores cargados.</p>
                 ) : (
                   <ul className="flex flex-col divide-y divide-linea">
                     {picking.variants.map((v) => (
@@ -198,7 +198,7 @@ function Builder() {
                           <span className="font-semibold">T.{v.size}</span>
                           {v.color !== "Único" && ` ${v.color}`} <span className={v.stock > 0 ? "text-gris" : "text-peligro"}>· hay {v.stock}</span>
                         </span>
-                        <Stepper size="sm" label={`talle ${v.size} ${v.color}`} value={pickQty[v.id] ?? 0} onChange={(n) => setPickQty({ ...pickQty, [v.id]: n })} />
+                        <Stepper size="sm" label={`${v.color} ${v.size}`} value={pickQty[v.id] ?? 0} onChange={(n) => setPickQty({ ...pickQty, [v.id]: n })} />
                       </li>
                     ))}
                   </ul>
@@ -237,7 +237,7 @@ function Builder() {
                 ))}
               </ul>
             ) : (
-              <p className="rounded-xl bg-malva px-4 py-3 text-sm text-gris">Buscá artículos arriba y elegí cantidades por talle.</p>
+              <p className="rounded-xl bg-piedra px-4 py-3 text-sm text-gris">Buscá artículos arriba y elegí cantidades por color.</p>
             )}
 
             <details className="rounded-xl border border-linea">

@@ -18,7 +18,7 @@ const key = (color: string, size: string) => `${color}|${size}`;
 const stageText: Record<PhotoStage, string> = {
   "cargando-modelo": "Preparando la IA (la primera vez tarda un poco)",
   "quitando-fondo": "Quitando el fondo",
-  componiendo: "Centrando la prenda",
+  componiendo: "Centrando el artículo",
 };
 
 function blank(defaultCategory: string): Product {
@@ -58,7 +58,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
   const [fixedText, setFixedText] = useState(initial?.priceOverride ? String(initial.priceOverride) : "");
   const [priceMode, setPriceMode] = useState<"auto" | "coef" | "fijo">(initial?.priceOverride ? "fijo" : initial?.coefficient ? "coef" : "auto");
 
-  const initSizes = initial ? [...new Set(initial.variants.map((v) => v.size))] : ["S", "M", "L"];
+  const initSizes = initial ? [...new Set(initial.variants.map((v) => v.size))] : ["Único"];
   const initColors = initial ? [...new Set(initial.variants.map((v) => v.color))] : ["Único"];
   const [sizes, setSizes] = useState<string[]>(initSizes.length ? initSizes : ["Único"]);
   const [colors, setColors] = useState<string[]>(initColors.length ? initColors : ["Único"]);
@@ -172,7 +172,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <h2 className="font-semibold">Fotos</h2>
               <div className="w-full sm:w-80">
-                <Switch checked={removeBg} onChange={setRemoveBg} label="Quitar fondo con IA" description="Recorta la prenda y la centra sobre fondo liso" />
+                <Switch checked={removeBg} onChange={setRemoveBg} label="Quitar fondo con IA" description="Recorta el artículo y lo centra sobre fondo liso" />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
@@ -196,7 +196,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
                 </div>
               ))}
               {busy && (
-                <div className="flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-fucsia bg-fucsia-suave p-2 text-center text-xs font-semibold text-fucsia" role="status">
+                <div className="flex aspect-[4/5] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-acento bg-acento-suave p-2 text-center text-xs font-semibold text-acento" role="status">
                   <CircleNotchIcon size={24} className="animate-spin" />
                   {stageText[busy.stage]}
                   {busy.pct !== undefined && busy.stage === "cargando-modelo" && <span className="num">{busy.pct}%</span>}
@@ -208,7 +208,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
                 <CameraIcon size={20} /> Sacar foto
                 <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => (onFiles(e.target.files), (e.target.value = ""))} disabled={!!busy} />
               </label>
-              <label className={clsx("inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-linea-fuerte bg-papel px-4 font-semibold hover:bg-malva", busy && "pointer-events-none opacity-50")}>
+              <label className={clsx("inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-linea-fuerte bg-papel px-4 font-semibold hover:bg-piedra", busy && "pointer-events-none opacity-50")}>
                 <ImageIcon size={20} /> Elegir de la galería
                 <input type="file" accept="image/*" multiple className="sr-only" onChange={(e) => (onFiles(e.target.files), (e.target.value = ""))} disabled={!!busy} />
               </label>
@@ -276,19 +276,19 @@ export function ProductForm({ initial }: { initial?: Product }) {
                 ))}
               </Select>
             </Field>
-            <Field label="Descripción" htmlFor="f-desc" hint="Tela, calce, detalles. Se muestra en la tienda.">
+            <Field label="Descripción" htmlFor="f-desc" hint="Material, medidas, detalles. Se muestra en la tienda.">
               <Textarea id="f-desc" rows={3} value={p.description} onChange={(e) => set("description", e.target.value)} />
             </Field>
           </Panel>
 
-          {/* Talles y stock */}
+          {/* Medidas, colores y stock */}
           <Panel className="flex flex-col gap-4 p-5">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="font-semibold">Talles, colores y stock</h2>
+              <h2 className="font-semibold">Medidas, colores y stock</h2>
               <span className="num text-sm text-gris">{units} unidades</span>
             </div>
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-semibold">Talles</p>
+              <p className="text-sm font-semibold">Medidas</p>
               <div className="flex flex-wrap gap-2">
                 {allSizes.map((s) => {
                   const on = sizes.includes(s);
@@ -298,7 +298,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
                       type="button"
                       aria-pressed={on}
                       onClick={() => setSizes(on ? sizes.filter((x) => x !== s) : allSizes.filter((x) => x === s || sizes.includes(x)))}
-                      className={clsx("num min-h-10 min-w-11 rounded-lg border px-3 text-sm font-semibold", on ? "border-tinta bg-tinta text-lienzo" : "border-linea-fuerte bg-papel hover:bg-malva")}
+                      className={clsx("num min-h-10 min-w-11 rounded-lg border px-3 text-sm font-semibold", on ? "border-tinta bg-tinta text-lienzo" : "border-linea-fuerte bg-papel hover:bg-piedra")}
                     >
                       {s}
                     </button>
@@ -313,7 +313,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
                     setNewSize("");
                   }}
                 >
-                  <Input aria-label="Otro talle" placeholder="Otro" className="w-20 min-h-10" value={newSize} onChange={(e) => setNewSize(e.target.value)} />
+                  <Input aria-label="Otra medida" placeholder="Otro" className="w-20 min-h-10" value={newSize} onChange={(e) => setNewSize(e.target.value)} />
                 </form>
               </div>
             </div>
@@ -321,7 +321,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
               <p className="text-sm font-semibold">Colores</p>
               <div className="flex flex-wrap items-center gap-2">
                 {colors.map((c) => (
-                  <span key={c} className="inline-flex min-h-10 items-center gap-1 rounded-lg bg-malva pl-3 text-sm font-semibold">
+                  <span key={c} className="inline-flex min-h-10 items-center gap-1 rounded-lg bg-piedra pl-3 text-sm font-semibold">
                     {c}
                     <button type="button" aria-label={`Quitar color ${c}`} className="flex size-10 items-center justify-center rounded-lg hover:bg-linea" onClick={() => setColors(colors.length > 1 ? colors.filter((x) => x !== c) : ["Único"])}>
                       <XIcon size={14} />
@@ -366,9 +366,9 @@ export function ProductForm({ initial }: { initial?: Product }) {
                         {sizes.map((s) => (
                           <td key={s}>
                             <input
-                              aria-label={`Stock ${c} talle ${s}`}
+                              aria-label={`Stock ${c} ${s}`}
                               inputMode="numeric"
-                              className="num h-11 w-full min-w-16 rounded-lg border border-linea-fuerte bg-papel text-center font-semibold focus:border-fucsia focus:outline-none"
+                              className="num h-11 w-full min-w-16 rounded-lg border border-linea-fuerte bg-papel text-center font-semibold focus:border-acento focus:outline-none"
                               value={stock[key(c, s)] ?? 0}
                               onFocus={(e) => e.currentTarget.select()}
                               onChange={(e) => setStock({ ...stock, [key(c, s)]: parseInt(e.target.value.replace(/\D/g, "") || "0", 10) })}
@@ -411,7 +411,7 @@ export function ProductForm({ initial }: { initial?: Product }) {
                 <Input id="f-fixed" inputMode="decimal" className="num" value={fixedText} onChange={(e) => setFixedText(e.target.value)} />
               </Field>
             )}
-            <div className="flex flex-col gap-2 rounded-xl bg-malva p-4">
+            <div className="flex flex-col gap-2 rounded-xl bg-piedra p-4">
               {priceMode !== "fijo" && (
                 <p className="num text-sm text-gris">
                   {fmtMoney(cost)} × {fmtCoef(coef)} = {fmtMoney(cost * coef)}

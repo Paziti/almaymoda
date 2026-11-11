@@ -14,9 +14,9 @@ const base =
   "inline-flex items-center justify-center gap-2 font-semibold transition-[color,background-color,opacity] duration-150 active:opacity-75 disabled:opacity-50 disabled:pointer-events-none select-none whitespace-nowrap";
 const variants: Record<Variant, string> = {
   primary: "bg-tinta text-lienzo hover:opacity-90",
-  accent: "bg-fucsia text-sobre-fucsia hover:bg-fucsia-hover",
-  secondary: "bg-papel text-tinta border border-linea-fuerte hover:bg-malva",
-  ghost: "text-tinta hover:bg-malva",
+  accent: "bg-acento text-sobre-acento hover:bg-acento-hover",
+  secondary: "bg-papel text-tinta border border-linea-fuerte hover:bg-piedra",
+  ghost: "text-tinta hover:bg-piedra",
   danger: "bg-peligro-suave text-peligro hover:brightness-95",
   whatsapp: "bg-whatsapp text-white hover:brightness-110 dark:text-[#0b2a1a]",
 };
@@ -51,7 +51,7 @@ export function ButtonLink({ href, variant = "primary", size = "md", className, 
 
 export function IconButton({ label, className, children, ...rest }: ComponentProps<"button"> & { label: string }) {
   return (
-    <button type="button" aria-label={label} title={label} className={clsx("inline-flex size-11 items-center justify-center rounded-xl text-tinta hover:bg-malva", className)} {...rest}>
+    <button type="button" aria-label={label} title={label} className={clsx("inline-flex size-11 items-center justify-center rounded-xl text-tinta hover:bg-piedra", className)} {...rest}>
       {children}
     </button>
   );
@@ -60,7 +60,7 @@ export function IconButton({ label, className, children, ...rest }: ComponentPro
 /* ---------- Formularios ---------- */
 
 const fieldBase =
-  "w-full min-h-11 rounded-xl border border-linea-fuerte bg-papel px-3.5 text-[0.95rem] text-tinta placeholder:text-gris/80 focus:border-fucsia focus:outline-none focus:ring-2 focus:ring-fucsia/25 aria-[invalid=true]:border-peligro";
+  "w-full min-h-11 rounded-xl border border-linea-fuerte bg-papel px-3.5 text-[0.95rem] text-tinta placeholder:text-gris/80 focus:border-acento focus:outline-none focus:ring-2 focus:ring-acento/25 aria-[invalid=true]:border-peligro";
 
 export const Input = forwardRef<HTMLInputElement, ComponentProps<"input">>(function Input({ className, ...rest }, ref) {
   return <input ref={ref} className={clsx(fieldBase, className)} {...rest} />;
@@ -111,9 +111,9 @@ export function Switch({ checked, onChange, label, description, id }: { checked:
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={clsx("relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors", checked ? "bg-fucsia" : "bg-linea-fuerte")}
+        className={clsx("relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors", checked ? "bg-acento" : "bg-linea-fuerte")}
       >
-        <span className={clsx("absolute top-1 size-5 rounded-full bg-papel shadow transition-all", checked ? "left-6" : "left-1")} />
+        <span className={clsx("absolute top-1 size-5 rounded-full bg-papel shadow transition-[left] duration-150", checked ? "left-6" : "left-1")} />
       </button>
     </div>
   );
@@ -121,7 +121,7 @@ export function Switch({ checked, onChange, label, description, id }: { checked:
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[]; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-xl bg-malva p-1">
+    <div role="radiogroup" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-xl bg-piedra p-1">
       {options.map((o) => (
         <button
           key={o.value}
@@ -143,7 +143,7 @@ export function Stepper({ value, onChange, min = 0, max, label, size = "md" }: {
   const h = size === "sm" ? "h-10" : "h-11";
   return (
     <div className={clsx("inline-flex items-stretch rounded-xl border border-linea-fuerte bg-papel", h)}>
-      <button type="button" aria-label={`Restar ${label}`} className="w-10 inline-flex items-center justify-center text-tinta hover:bg-malva rounded-l-xl disabled:opacity-40" onClick={() => onChange(clamp(value - 1))} disabled={value <= min}>
+      <button type="button" aria-label={`Restar ${label}`} className="w-10 inline-flex items-center justify-center text-tinta hover:bg-piedra rounded-l-xl disabled:opacity-40" onClick={() => onChange(clamp(value - 1))} disabled={value <= min}>
         <MinusIcon size={16} weight="bold" />
       </button>
       <input
@@ -157,7 +157,7 @@ export function Stepper({ value, onChange, min = 0, max, label, size = "md" }: {
           onChange(clamp(n));
         }}
       />
-      <button type="button" aria-label={`Sumar ${label}`} className="w-10 inline-flex items-center justify-center text-tinta hover:bg-malva rounded-r-xl disabled:opacity-40" onClick={() => onChange(clamp(value + 1))} disabled={max !== undefined && value >= max}>
+      <button type="button" aria-label={`Sumar ${label}`} className="w-10 inline-flex items-center justify-center text-tinta hover:bg-piedra rounded-r-xl disabled:opacity-40" onClick={() => onChange(clamp(value + 1))} disabled={max !== undefined && value >= max}>
         <PlusIcon size={16} weight="bold" />
       </button>
     </div>
@@ -177,11 +177,11 @@ export function PriceTag({ value, tone, className, size = "md" }: { value: React
 
 type Tone = "neutral" | "ok" | "alerta" | "peligro" | "acento";
 const tones: Record<Tone, string> = {
-  neutral: "bg-malva text-tinta",
+  neutral: "bg-piedra text-tinta",
   ok: "bg-ok-suave text-ok",
   alerta: "bg-alerta-suave text-alerta",
   peligro: "bg-peligro-suave text-peligro",
-  acento: "bg-fucsia-suave text-fucsia",
+  acento: "bg-acento-suave text-acento",
 };
 
 export function Badge({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {

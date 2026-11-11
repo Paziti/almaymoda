@@ -66,7 +66,7 @@ export default function StockPage() {
 
   return (
     <div>
-      <PageHeader title="Ingreso de stock" description="Buscá el artículo por código o nombre, tipeá las cantidades por talle y guardá. Pensado para hacerlo parado en el depósito." />
+      <PageHeader title="Ingreso de stock" description="Buscá el artículo por código o nombre, tipeá las cantidades por color y medida y guardá. Pensado para hacerlo parado en el depósito." />
       <div className={`${pagePad} grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]`}>
         <div className="flex min-w-0 flex-col gap-4">
           <div className="relative">
@@ -88,7 +88,7 @@ export default function StockPage() {
               <ul className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-linea bg-papel shadow-xl">
                 {results.map((p) => (
                   <li key={p.id}>
-                    <button type="button" onClick={() => pick(p)} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-malva">
+                    <button type="button" onClick={() => pick(p)} className="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-piedra">
                       <div className="w-9 shrink-0 overflow-hidden rounded-md">
                         <ProductImage product={p} sizes="sm" />
                       </div>
@@ -105,7 +105,7 @@ export default function StockPage() {
             {q && results.length === 0 && (
               <p className="mt-2 text-sm text-gris">
                 No hay artículos con “{q}”.{" "}
-                <Link href="/admin/productos/nuevo" className="font-semibold text-fucsia underline">
+                <Link href="/admin/productos/nuevo" className="font-semibold text-acento underline">
                   Cargarlo como nuevo
                 </Link>
               </p>
@@ -139,9 +139,9 @@ export default function StockPage() {
               />
               {selected.variants.length === 0 ? (
                 <p className="text-gris">
-                  Este artículo no tiene talles cargados.{" "}
-                  <Link href={`/admin/productos/editar?id=${selected.id}`} className="font-semibold text-fucsia underline">
-                    Agregar talles
+                  Este artículo no tiene colores cargados.{" "}
+                  <Link href={`/admin/productos/editar?id=${selected.id}`} className="font-semibold text-acento underline">
+                    Agregar colores
                   </Link>
                 </p>
               ) : (
@@ -169,10 +169,10 @@ export default function StockPage() {
                             return (
                               <td key={s} className="align-top">
                                 <input
-                                  aria-label={`${mode === "sumar" ? "Sumar" : "Stock contado"} ${c} talle ${s}`}
+                                  aria-label={`${mode === "sumar" ? "Sumar" : "Stock contado"} ${c} ${s}`}
                                   inputMode="numeric"
                                   placeholder={mode === "sumar" ? "+0" : String(v.stock)}
-                                  className="num h-12 w-full min-w-16 rounded-lg border border-linea-fuerte bg-papel text-center text-base font-semibold placeholder:text-gris/70 focus:border-fucsia focus:outline-none"
+                                  className="num h-12 w-full min-w-16 rounded-lg border border-linea-fuerte bg-papel text-center text-base font-semibold placeholder:text-gris/70 focus:border-acento focus:outline-none"
                                   value={values[v.id] ?? ""}
                                   onChange={(e) => {
                                     const raw = e.target.value.replace(/\D/g, "");

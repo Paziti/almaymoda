@@ -73,7 +73,7 @@ export default function ProveedoresPage() {
                   <Panel as="article" className="flex h-full flex-col gap-3 p-5">
                     <div className="flex items-start justify-between gap-3">
                       <button type="button" onClick={() => open(s)} className="min-w-0 text-left">
-                        <h2 className="truncate font-display text-2xl hover:text-fucsia">{s.name}</h2>
+                        <h2 className="truncate font-display text-2xl hover:text-acento">{s.name}</h2>
                         <p className="text-sm text-gris">{[s.contact, s.phone, s.email].filter(Boolean).join(" · ") || "Sin datos de contacto"}</p>
                       </button>
                       <span className="hang-tag shrink-0 text-[0.8rem]">× {fmtCoef(s.coefficient ?? general)}</span>

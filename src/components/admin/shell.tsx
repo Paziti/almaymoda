@@ -130,11 +130,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         href={item.href}
         onClick={() => setMoreOpen(false)}
         aria-current={active ? "page" : undefined}
-        className={clsx("flex min-h-11 items-center gap-3 rounded-xl px-3 font-semibold transition-colors", active ? "bg-tinta text-lienzo" : "text-tinta hover:bg-malva")}
+        className={clsx("flex min-h-11 items-center gap-3 rounded-xl px-3 font-semibold transition-colors", active ? "bg-tinta text-lienzo" : "text-tinta hover:bg-piedra")}
       >
         <Icon size={20} weight={active ? "fill" : "regular"} />
         <span className="flex-1">{item.label}</span>
-        {item.href === "/admin/pedidos" && newOrders > 0 && <span className={clsx("num rounded-md px-1.5 text-xs font-bold", active ? "bg-lienzo text-tinta" : "bg-fucsia text-sobre-fucsia")}>{newOrders}</span>}
+        {item.href === "/admin/pedidos" && newOrders > 0 && <span className={clsx("num rounded-md px-1.5 text-xs font-bold", active ? "bg-lienzo text-tinta" : "bg-acento text-sobre-acento")}>{newOrders}</span>}
       </Link>
     );
   };
@@ -155,7 +155,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </Link>
           <ThemeToggle />
         </div>
-        <Link href="/admin/productos/nuevo" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-fucsia font-semibold text-sobre-fucsia hover:bg-fucsia-hover">
+        <Link href="/admin/productos/nuevo" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-acento font-semibold text-sobre-acento hover:bg-acento-hover">
           <PlusIcon size={20} weight="bold" /> Cargar artículo
         </Link>
         <nav aria-label="Panel" className="flex flex-col gap-5">
@@ -167,10 +167,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-1 border-t border-linea pt-4">
-          <Link href="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 font-semibold hover:bg-malva">
+          <Link href="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 font-semibold hover:bg-piedra">
             <StorefrontIcon size={20} /> Ver la tienda
           </Link>
-          <button type="button" onClick={lock} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left font-semibold hover:bg-malva">
+          <button type="button" onClick={lock} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left font-semibold hover:bg-piedra">
             <SignOutIcon size={20} /> Bloquear panel
           </button>
         </div>
@@ -194,14 +194,14 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           {bottom.slice(0, 2).map((item) => (
             <BottomLink key={item.href} item={item} active={isActive(pathname, item)} />
           ))}
-          <Link href="/admin/productos/nuevo" aria-label="Cargar artículo" className="mx-auto flex size-13 items-center justify-center rounded-2xl bg-fucsia text-sobre-fucsia shadow-lg shadow-fucsia/25">
+          <Link href="/admin/productos/nuevo" aria-label="Cargar artículo" className="mx-auto flex size-13 items-center justify-center rounded-2xl bg-acento text-sobre-acento shadow-lg shadow-acento/25">
             <PlusIcon size={26} weight="bold" />
           </Link>
           <BottomLink item={bottom[2]} active={isActive(pathname, bottom[2])} />
           <button type="button" onClick={() => setMoreOpen(true)} aria-expanded={moreOpen} className="relative flex h-full flex-col items-center justify-center gap-0.5 text-[0.7rem] font-semibold text-gris">
             <ListIcon size={22} />
             Más
-            {newOrders > 0 && <span className="absolute right-4 top-2 size-2.5 rounded-full bg-fucsia" aria-label={`${newOrders} pedidos nuevos`} />}
+            {newOrders > 0 && <span className="absolute right-4 top-2 size-2.5 rounded-full bg-acento" aria-label={`${newOrders} pedidos nuevos`} />}
           </button>
         </div>
       </nav>
@@ -219,10 +219,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 </div>
               ))}
               <div className="flex flex-col gap-1 border-t border-linea pt-3">
-                <Link href="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 font-semibold hover:bg-malva">
+                <Link href="/" className="flex min-h-11 items-center gap-3 rounded-xl px-3 font-semibold hover:bg-piedra">
                   <StorefrontIcon size={20} /> Ver la tienda
                 </Link>
-                <button type="button" onClick={lock} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left font-semibold hover:bg-malva">
+                <button type="button" onClick={lock} className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-left font-semibold hover:bg-piedra">
                   <SignOutIcon size={20} /> Bloquear panel
                 </button>
               </div>

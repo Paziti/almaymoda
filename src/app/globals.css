@@ -13,21 +13,24 @@
 }
 
 /*
-  almaymoda: tokens de diseño (ver DESIGN.md para el porqué de cada decisión).
-  Tinta berenjena + lienzo rosado muy claro + un solo acento frambuesa.
+  Alma y Moda: tokens de diseño (ver DESIGN.md para el porqué de cada decisión).
+  Sale del logo: piedra #E5DCD2, blanco y la tinta negra cálida de la firma.
+  Un solo acento, suela de cuero, porque venden carteras, bolsos y billeteras.
 */
 :root {
-  --lienzo: #fbf9f8;
+  /* Color exacto del círculo del logo: igual en los dos temas */
+  --marca: #e5dcd2;
+  --lienzo: #f8f4ef;
   --papel: #ffffff;
-  --tinta: #221b26;
-  --gris: #645b67;
-  --malva: #f1e9ee;
-  --linea: #e4d9e0;
-  --linea-fuerte: #cdbfc8;
-  --fucsia: #b8326a;
-  --fucsia-hover: #9c2557;
-  --fucsia-suave: #f8e5ed;
-  --sobre-fucsia: #ffffff;
+  --tinta: #241f1b;
+  --gris: #6b6158;
+  --piedra: #ece4da;
+  --linea: #e2d9ce;
+  --linea-fuerte: #c8bbac;
+  --acento: #8a5434;
+  --acento-hover: #74452a;
+  --acento-suave: #f3e6dc;
+  --sobre-acento: #ffffff;
   --ok: #2b7a57;
   --ok-suave: #e3f2ea;
   --alerta: #94600b;
@@ -35,30 +38,30 @@
   --peligro: #b3261e;
   --peligro-suave: #fbe6e4;
   --whatsapp: #1f7a4d;
-  /* Franja berenjena: el momento de contraste de la tienda (tinta invertida, no un color nuevo) */
-  --banda: #221b26;
-  --sobre-banda: #fbf9f8;
-  --banda-gris: #c4b8c2;
-  --banda-linea: #3d3343;
+  /* Franja oscura: la tinta del logo invertida como fondo (no es un color nuevo) */
+  --banda: #241f1b;
+  --sobre-banda: #f8f4ef;
+  --banda-gris: #c9bfb4;
+  --banda-linea: #3e3630;
   /* Base de las fotos y siluetas: no cambia dentro de la franja oscura */
-  --foto: #f3edf1;
-  --foto-texto: #5b525e;
+  --foto: #efe8df;
+  --foto-texto: #5e554c;
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --lienzo: #17121a;
-    --papel: #211a25;
-    --tinta: #f3ecf1;
-    --gris: #b6aab4;
-    --malva: #2c2330;
-    --linea: #3a2f3f;
-    --linea-fuerte: #54465a;
-    --fucsia: #f07aa8;
-    --fucsia-hover: #f597bb;
-    --fucsia-suave: #3a1f2c;
-    --sobre-fucsia: #2a0f1c;
+    --lienzo: #191613;
+    --papel: #221e1a;
+    --tinta: #f2ece4;
+    --gris: #bdb2a6;
+    --piedra: #2d2823;
+    --linea: #38322c;
+    --linea-fuerte: #524940;
+    --acento: #d9a079;
+    --acento-hover: #e6b693;
+    --acento-suave: #3a2a1f;
+    --sobre-acento: #2a1708;
     --ok: #6ccb9f;
     --ok-suave: #173326;
     --alerta: #e9b55c;
@@ -66,28 +69,28 @@
     --peligro: #f28b82;
     --peligro-suave: #3c1a18;
     --whatsapp: #5fd497;
-    --banda: #2a1d2f;
-    --sobre-banda: #f3ecf1;
-    --banda-gris: #b6aab4;
-    --banda-linea: #46374c;
-    --foto: #2a222e;
-    --foto-texto: #cfc4cd;
+    --banda: #2e2822;
+    --sobre-banda: #f2ece4;
+    --banda-gris: #c4b9ad;
+    --banda-linea: #4a4239;
+    --foto: #2b2621;
+    --foto-texto: #d2c8bc;
     color-scheme: dark;
   }
 }
 
 :root[data-theme="dark"] {
-  --lienzo: #17121a;
-  --papel: #211a25;
-  --tinta: #f3ecf1;
-  --gris: #b6aab4;
-  --malva: #2c2330;
-  --linea: #3a2f3f;
-  --linea-fuerte: #54465a;
-  --fucsia: #f07aa8;
-  --fucsia-hover: #f597bb;
-  --fucsia-suave: #3a1f2c;
-  --sobre-fucsia: #2a0f1c;
+  --lienzo: #191613;
+  --papel: #221e1a;
+  --tinta: #f2ece4;
+  --gris: #bdb2a6;
+  --piedra: #2d2823;
+  --linea: #38322c;
+  --linea-fuerte: #524940;
+  --acento: #d9a079;
+  --acento-hover: #e6b693;
+  --acento-suave: #3a2a1f;
+  --sobre-acento: #2a1708;
   --ok: #6ccb9f;
   --ok-suave: #173326;
   --alerta: #e9b55c;
@@ -95,12 +98,12 @@
   --peligro: #f28b82;
   --peligro-suave: #3c1a18;
   --whatsapp: #5fd497;
-  --banda: #2a1d2f;
-  --sobre-banda: #f3ecf1;
-  --banda-gris: #b6aab4;
-  --banda-linea: #46374c;
-  --foto: #2a222e;
-    --foto-texto: #cfc4cd;
+  --banda: #2e2822;
+  --sobre-banda: #f2ece4;
+  --banda-gris: #c4b9ad;
+  --banda-linea: #4a4239;
+  --foto: #2b2621;
+  --foto-texto: #d2c8bc;
   color-scheme: dark;
 }
 
@@ -109,13 +112,13 @@
   --color-papel: var(--papel);
   --color-tinta: var(--tinta);
   --color-gris: var(--gris);
-  --color-malva: var(--malva);
+  --color-piedra: var(--piedra);
   --color-linea: var(--linea);
   --color-linea-fuerte: var(--linea-fuerte);
-  --color-fucsia: var(--fucsia);
-  --color-fucsia-hover: var(--fucsia-hover);
-  --color-fucsia-suave: var(--fucsia-suave);
-  --color-sobre-fucsia: var(--sobre-fucsia);
+  --color-acento: var(--acento);
+  --color-acento-hover: var(--acento-hover);
+  --color-acento-suave: var(--acento-suave);
+  --color-sobre-acento: var(--sobre-acento);
   --color-ok: var(--ok);
   --color-ok-suave: var(--ok-suave);
   --color-alerta: var(--alerta);
@@ -125,6 +128,8 @@
   --color-whatsapp: var(--whatsapp);
   --font-sans: var(--font-figtree), system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font-bodoni), "Didot", Georgia, serif;
+  --font-firma: var(--font-script), "Brush Script MT", cursive;
+  --color-marca: var(--marca);
 }
 
 html {
@@ -143,7 +148,7 @@ h1, h2, h3 {
 }
 
 :focus-visible {
-  outline: 2px solid var(--fucsia);
+  outline: 2px solid var(--acento);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -157,6 +162,17 @@ button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]),
 summary {
   cursor: pointer;
+}
+
+/* Sin demora de doble toque en controles; el resaltado gris del navegador se reemplaza por :active propio */
+a, button, summary, input, select, textarea, label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Los anclas no quedan tapados por el encabezado fijo */
+[id] {
+  scroll-margin-top: 5.5rem;
 }
 
 /* Etiqueta colgante: el motivo de identidad. Precios, números de remito y contador del pedido. */
@@ -186,11 +202,11 @@ summary {
   background: var(--lienzo);
 }
 .hang-tag[data-tone="accent"] {
-  background: var(--fucsia);
-  color: var(--sobre-fucsia);
+  background: var(--acento);
+  color: var(--sobre-acento);
 }
 .hang-tag[data-tone="accent"]::before {
-  background: var(--sobre-fucsia);
+  background: var(--sobre-acento);
 }
 
 /*
@@ -203,15 +219,15 @@ summary {
   --gris: var(--banda-gris);
   --linea: var(--banda-linea);
   --linea-fuerte: var(--banda-linea);
-  --malva: var(--banda-linea);
+  --piedra: var(--banda-linea);
   --alerta: #e9b55c;
-  --fucsia: #f07aa8;
-  --sobre-fucsia: #2a0f1c;
+  --acento: #d9a079;
+  --sobre-acento: #2a1708;
   background: var(--banda);
   color: var(--sobre-banda);
 }
 
-/* Silueta sin foto: el fondo toma el color real de la prenda, muy diluido */
+/* Silueta sin foto: el fondo toma el color real del artículo, muy diluido */
 .foto-tinte {
   background: color-mix(in oklab, var(--swatch, var(--linea-fuerte)) 26%, var(--foto));
 }
@@ -251,13 +267,20 @@ input[type="number"] {
 }
 
 dialog::backdrop {
-  background: rgb(23 18 26 / 0.45);
+  background: rgb(36 31 27 / 0.45);
 }
 
 .scroll-x {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
+}
+/* Filas de pestañas: se deslizan con el dedo, la barra sólo estorba */
+.scroll-x.sin-barra {
+  scrollbar-width: none;
+}
+.scroll-x.sin-barra::-webkit-scrollbar {
+  display: none;
 }
 
 .safe-bottom {

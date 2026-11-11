@@ -122,10 +122,10 @@ export default function ImportarPage() {
   const downloadTemplate = async () => {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.aoa_to_sheet([
-      ["Código", "Descripción", "Costo", "Stock", "Talle", "Color", "Categoría"],
-      ["JN-4001", "Jean mom tiro alto", 14500, 10, "38", "Celeste", "Jeans"],
-      ["JN-4001", "Jean mom tiro alto", 14500, 8, "40", "Celeste", "Jeans"],
-      ["RM-1020", "Remera básica algodón", 4200, 24, "M", "Negro", "Remeras"],
+      ["Código", "Descripción", "Costo", "Stock", "Medida", "Color", "Categoría"],
+      ["CT-1102", "Cartera bandolera con bolsillo frontal", 9800, 12, "Único", "Bordó", "Carteras"],
+      ["CT-1102", "Cartera bandolera con bolsillo frontal", 9800, 9, "Único", "Negro", "Carteras"],
+      ["BO-7002", "Botella térmica estampada", 8900, 12, "500 ml", "Fucsia", "Botellas"],
     ]);
     ws["!cols"] = [{ wch: 12 }, { wch: 32 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 12 }, { wch: 14 }];
     const wb = XLSX.utils.book_new();
@@ -142,7 +142,7 @@ export default function ImportarPage() {
       <ol className={`${pagePad} mb-6 flex gap-2`} aria-label="Pasos">
         {STEPS.map((s, i) => (
           <li key={s} aria-current={step === i + 1 ? "step" : undefined} className="flex flex-1 flex-col gap-1.5">
-            <span className={clsx("h-1.5 rounded-full", step > i ? "bg-fucsia" : "bg-linea")} />
+            <span className={clsx("h-1.5 rounded-full", step > i ? "bg-acento" : "bg-linea")} />
             <span className={clsx("text-xs font-semibold sm:text-sm", step === i + 1 ? "text-tinta" : "text-gris")}>{s}</span>
           </li>
         ))}
@@ -164,14 +164,14 @@ export default function ImportarPage() {
               }}
               className={clsx(
                 "flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors",
-                dragging ? "border-fucsia bg-fucsia-suave" : "border-linea-fuerte bg-papel hover:border-fucsia",
+                dragging ? "border-acento bg-acento-suave" : "border-linea-fuerte bg-papel hover:border-acento",
               )}
             >
               {parsing ? (
                 <Spinner label={`Leyendo ${fileName}`} />
               ) : (
                 <>
-                  <FileArrowUpIcon size={44} className="text-fucsia" />
+                  <FileArrowUpIcon size={44} className="text-acento" />
                   <span className="font-display text-3xl">Elegí o arrastrá el archivo</span>
                   <span className="max-w-md text-gris">Excel (.xlsx, .xls), CSV, PDF con texto, o la base de Access de Jaque (.mdb, .accdb).</span>
                   <span className="mt-2 inline-flex min-h-11 items-center rounded-xl bg-tinta px-5 font-semibold text-lienzo">Elegir archivo</span>
@@ -235,7 +235,7 @@ export default function ImportarPage() {
                     .filter(Boolean)
                     .slice(0, 3);
                   return (
-                    <li key={c} className={clsx("flex flex-col gap-2 rounded-xl border p-3", mapping[c] !== "ignore" ? "border-fucsia bg-fucsia-suave/40" : "border-linea")}>
+                    <li key={c} className={clsx("flex flex-col gap-2 rounded-xl border p-3", mapping[c] !== "ignore" ? "border-acento bg-acento-suave/40" : "border-linea")}>
                       <div className="min-w-0">
                         <p className="truncate font-semibold">{h}</p>
                         <p className="truncate text-sm text-gris">{samples.join(" · ") || "vacía"}</p>
@@ -320,7 +320,7 @@ export default function ImportarPage() {
                   type="button"
                   aria-pressed={filter === k}
                   onClick={() => setFilter(k)}
-                  className={clsx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 font-semibold", filter === k ? "border-tinta bg-tinta text-lienzo" : "border-linea-fuerte bg-papel hover:bg-malva")}
+                  className={clsx("inline-flex min-h-11 items-center gap-2 rounded-xl border px-4 font-semibold", filter === k ? "border-tinta bg-tinta text-lienzo" : "border-linea-fuerte bg-papel hover:bg-piedra")}
                 >
                   {k === "todos" ? "Todos" : kindInfo[k].label}
                   <span className="num text-sm opacity-80">{k === "todos" ? rows.length : counts[k]}</span>
@@ -353,10 +353,10 @@ export default function ImportarPage() {
                     const pct = r.oldCost && r.cost !== null && r.kind === "cambia" ? ((r.cost - r.oldCost) / r.oldCost) * 100 : null;
                     return (
                       <li key={r.key}>
-                        <label className={clsx("grid grid-cols-[28px_1fr] gap-x-3 gap-y-1 px-4 py-3 sm:grid-cols-[28px_1fr_auto]", actionable ? "cursor-pointer hover:bg-malva/40" : "opacity-80")}>
+                        <label className={clsx("grid grid-cols-[28px_1fr] gap-x-3 gap-y-1 px-4 py-3 sm:grid-cols-[28px_1fr_auto]", actionable ? "cursor-pointer hover:bg-piedra/40" : "opacity-80")}>
                           <input
                             type="checkbox"
-                            className="mt-1 size-5 accent-[var(--fucsia)]"
+                            className="mt-1 size-5 accent-[var(--acento)]"
                             disabled={!actionable}
                             checked={r.selected}
                             onChange={(e) => setRows((rs) => rs.map((x) => (x.key === r.key ? { ...x, selected: e.target.checked } : x)))}
@@ -373,7 +373,7 @@ export default function ImportarPage() {
                               <span className="num">
                                 {r.kind === "cambia" && r.oldCost !== null && r.oldCost !== r.cost && <span className="text-gris line-through">{fmtMoney(r.oldCost)}</span>} <span className="font-semibold">{fmtMoney(r.cost)}</span>
                                 {pct !== null && Math.abs(pct) >= 0.1 && (
-                                  <span className={clsx("ml-1 font-semibold", pct > 0 ? "text-fucsia" : "text-ok")}>
+                                  <span className={clsx("ml-1 font-semibold", pct > 0 ? "text-acento" : "text-ok")}>
                                     {pct > 0 ? "+" : ""}
                                     {pct.toFixed(1).replace(".", ",")}%
                                   </span>
@@ -414,7 +414,7 @@ export default function ImportarPage() {
             <h2 className="font-display text-4xl">Lista importada</h2>
             <p className="text-gris">
               {done.updated} artículos actualizados y {done.created} nuevos.
-              {done.created > 0 && " Los nuevos quedaron ocultos: poneles foto y talles y publicalos."}
+              {done.created > 0 && " Los nuevos quedaron ocultos: poneles foto y colores y publicalos."}
             </p>
             <div className="flex flex-wrap justify-center gap-2">
               <ButtonLink href={done.created > 0 ? "/admin/productos?estado=ocultos" : "/admin/productos"}>{done.created > 0 ? "Ver los nuevos" : "Ver artículos"}</ButtonLink>
@@ -427,7 +427,7 @@ export default function ImportarPage() {
 
         <p className="text-sm text-gris">
           Para cambiar precios en bloque sin archivo (por ejemplo, un aumento general del proveedor) usá{" "}
-          <Link href="/admin/precios" className="font-semibold text-fucsia underline">
+          <Link href="/admin/precios" className="font-semibold text-acento underline">
             Precios y coeficientes
           </Link>
           .

@@ -80,7 +80,7 @@ export async function buildRemitoPdf(r: Remito, s: Settings): Promise<Blob> {
   autoTable(doc, {
     startY: y,
     margin: { left: M, right: M },
-    head: [["Código", "Artículo", "Talle", "Color", "Cant.", "P. unit.", "Importe"]],
+    head: [["Código", "Artículo", "Medida", "Color", "Cant.", "P. unit.", "Importe"]],
     body: r.items.map((i) => [i.code, i.name, i.size, i.color, String(i.qty), fmtMoney(i.unitPrice), fmtMoney(i.qty * i.unitPrice)]),
     styles: { font: "helvetica", fontSize: 9, textColor: INK, cellPadding: 2.4, lineColor: LINE, lineWidth: 0 },
     headStyles: { fillColor: INK, textColor: [255, 255, 255], fontStyle: "bold" },

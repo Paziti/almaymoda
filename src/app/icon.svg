@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Monograma del logo de Alma y Moda. En tamaño ícono el AM va oscuro para que se lea. -->
+  <circle cx="32" cy="32" r="32" fill="#E5DCD2"/>
+  <text x="32" y="43" text-anchor="middle" font-family="Didot, 'Bodoni 72', 'Bodoni MT', Georgia, serif" font-size="31" letter-spacing="-1.5" fill="#241F1B">AM</text>
+</svg>
