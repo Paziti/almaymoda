@@ -47,7 +47,9 @@ export function ProductImage({
   showLabel?: boolean;
   aspect?: string;
 }) {
-  const src = product.images[index];
+  const raw = product.images[index];
+  // Las fotos de ejemplo son rutas del sitio; las que cargan los dueños son data URLs.
+  const src = raw?.startsWith("/") ? `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}${raw}` : raw;
   if (src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element

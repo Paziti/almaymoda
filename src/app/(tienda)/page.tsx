@@ -32,9 +32,9 @@ export default function Home() {
 
   // Collage de tapa: pieza principal alta, una segunda que la pisa abajo y una tercera arriba.
   const collage = [
-    "relative z-0 ml-auto w-[72%]",
-    "absolute bottom-[16%] left-0 z-10 w-[44%] ring-[6px] ring-lienzo",
-    "absolute right-[-4%] top-[-6%] z-10 w-[30%] ring-[6px] ring-lienzo max-md:hidden",
+    "relative z-0 ml-auto w-[68%]",
+    "absolute bottom-[12%] left-0 z-10 w-[38%] ring-[6px] ring-lienzo",
+    "absolute right-[-3%] top-[-7%] z-10 w-[27%] ring-[6px] ring-lienzo max-md:hidden",
   ];
   const enter = (i: number) =>
     reduce ? {} : { initial: { opacity: 0, y: 28 }, animate: { opacity: 1, y: 0 }, transition: { delay: 0.25 + 0.14 * i, duration: 0.7, ease: [0.2, 0.7, 0.2, 1] as const } };

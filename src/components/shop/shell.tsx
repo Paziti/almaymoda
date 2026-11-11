@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { InstagramLogoIcon, WhatsappLogoIcon, UserIcon, ShoppingBagIcon } from "@phosphor-icons/react";
+import { InstagramLogoIcon, WhatsappLogoIcon, UserIcon, ShoppingBagIcon, MapPinIcon, ClockIcon } from "@phosphor-icons/react";
 import { useDB, useHydrated } from "@/lib/store";
 import { useSession } from "@/lib/session";
 import { useHasDemo } from "@/lib/hooks";
 import { whatsappUrl } from "@/lib/share";
 import { Spinner } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Firma, LogoMark } from "@/components/logo";
+import { LogoMark } from "@/components/logo";
 
 /** Logo + nombre. Escala con el font-size del contenedor. */
 export function Wordmark({ className, nameClassName }: { className?: string; nameClassName?: string }) {
@@ -32,6 +32,8 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
   const cartUnits = cart.reduce((a, l) => (products.some((p) => p.id === l.productId && p.variants.some((v) => v.id === l.variantId)) ? a + l.qty : a), 0);
   const settings = useDB((s) => s.settings);
   const hasDemo = useHasDemo();
+  // Categorías del pie: sólo las que tienen artículos publicados (nada de enlaces a páginas vacías).
+  const footerCats = settings.categories.filter((c) => products.some((p) => p.active && p.category === c)).slice(0, 6);
 
   const nav = [
     { href: "/catalogo", label: "Catálogo" },
@@ -89,39 +91,105 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
         {hydrated ? children : <Spinner label="Cargando catálogo" />}
       </main>
 
-      <footer className="banda mt-24 overflow-hidden">
-        <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 pb-8 pt-14">
-          <div className="grid gap-8 sm:grid-cols-[1.4fr_1fr]">
-            <div className="flex flex-col gap-3">
-              <p className="max-w-sm text-lg">Mayoristas de accesorios en Bahía Blanca. Elegí colores y cantidades en el catálogo y mandanos el pedido por WhatsApp.</p>
-              <p className="text-gris">Atendemos de lunes a viernes.</p>
-              {settings.address && <p className="text-gris">{settings.address}</p>}
+      <footer className="banda mt-24">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="grid gap-12 py-14 md:grid-cols-12 md:gap-8 md:py-16">
+            {/* Marca */}
+            <div className="flex flex-col items-start gap-5 md:col-span-5">
+              <LogoMark className="text-[5.5rem]" title="Alma y Moda, mayorista" />
+              <p className="max-w-[34ch] text-lg leading-relaxed">Mayoristas de accesorios en Bahía Blanca. Carteras, mochilas, billeteras, materos y térmicos para tu local.</p>
+              {settings.whatsapp ? (
+                <a href={whatsappUrl(settings.whatsapp, "Hola! Quería hacer una consulta por compra mayorista.")} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-tinta px-4 font-semibold text-lienzo transition-opacity hover:opacity-90">
+                  <WhatsappLogoIcon size={20} aria-hidden /> Escribinos por WhatsApp
+                </a>
+              ) : (
+                settings.instagram && (
+                  <a href={settings.instagram} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-tinta px-4 font-semibold text-lienzo transition-opacity hover:opacity-90">
+                    <InstagramLogoIcon size={20} aria-hidden /> Seguinos en Instagram
+                  </a>
+                )
+              )}
             </div>
-            <div className="flex flex-col gap-1 sm:items-end">
-              {settings.instagram && (
-                <a href={settings.instagram} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 font-semibold underline-offset-4 hover:underline">
-                  <InstagramLogoIcon size={22} /> @mayorista_almaymoda
-                </a>
+
+            {/* Enlaces reales, agrupados por lo que la clienta viene a hacer */}
+            <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 md:col-span-7">
+              {footerCats.length > 0 && (
+                <nav aria-label="Categorías" className="flex flex-col gap-3">
+                  <h2 className="text-sm font-semibold text-gris">Categorías</h2>
+                  <ul className="flex flex-col">
+                    {footerCats.map((c) => (
+                      <li key={c}>
+                        <Link href={`/catalogo?cat=${encodeURIComponent(c)}`} className="inline-flex min-h-10 items-center underline-offset-4 hover:underline">
+                          {c}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
               )}
-              {settings.whatsapp && (
-                <a href={whatsappUrl(settings.whatsapp, "Hola! Quería hacer una consulta.")} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 font-semibold underline-offset-4 hover:underline">
-                  <WhatsappLogoIcon size={22} /> WhatsApp
-                </a>
-              )}
-              <div className="flex items-center gap-2 sm:justify-end">
-                <Link href="/admin" className="inline-flex min-h-11 items-center text-sm text-gris hover:text-tinta">
-                  Panel de dueños
-                </Link>
-                <ThemeToggle className="inline-flex size-11 items-center justify-center rounded-xl text-gris hover:bg-piedra sm:hidden" />
+              <nav aria-label="Tu compra" className="flex flex-col gap-3">
+                <h2 className="text-sm font-semibold text-gris">Tu compra</h2>
+                <ul className="flex flex-col">
+                  {[
+                    ["/catalogo", "Catálogo completo"],
+                    ["/#t-how", "Cómo hacer un pedido"],
+                    ["/pedido", "Mi pedido"],
+                    ["/cuenta", "Mi cuenta"],
+                  ].map(([href, label]) => (
+                    <li key={href}>
+                      <Link href={href} className="inline-flex min-h-10 items-center underline-offset-4 hover:underline">
+                        {label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+              <div className="col-span-2 flex flex-col gap-3 sm:col-span-1">
+                <h2 className="text-sm font-semibold text-gris">Contacto</h2>
+                <ul className="flex flex-col">
+                  {settings.whatsapp && (
+                    <li>
+                      <a href={whatsappUrl(settings.whatsapp, "Hola! Quería hacer una consulta.")} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 underline-offset-4 hover:underline">
+                        <WhatsappLogoIcon size={18} aria-hidden /> WhatsApp
+                      </a>
+                    </li>
+                  )}
+                  {settings.instagram && (
+                    <li>
+                      <a href={settings.instagram} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 underline-offset-4 hover:underline">
+                        <InstagramLogoIcon size={18} aria-hidden /> Instagram
+                      </a>
+                    </li>
+                  )}
+                  {settings.email && (
+                    <li>
+                      <a href={`mailto:${settings.email}`} className="inline-flex min-h-10 items-center break-all underline-offset-4 hover:underline">
+                        {settings.email}
+                      </a>
+                    </li>
+                  )}
+                </ul>
+                <p className="flex items-start gap-2 text-gris">
+                  <MapPinIcon size={18} className="mt-0.5 shrink-0" aria-hidden />
+                  <span>{settings.address || "Bahía Blanca, Buenos Aires"}</span>
+                </p>
+                <p className="flex items-start gap-2 text-gris">
+                  <ClockIcon size={18} className="mt-0.5 shrink-0" aria-hidden />
+                  <span>Lunes a viernes</span>
+                </p>
               </div>
             </div>
           </div>
-          {/* Masthead: el nombre de la marca como cabecera de revista */}
-          {/* Masthead: el logo y la firma de la marca en grande */}
-          <Link href="/" aria-label="Volver al inicio" className="flex items-center gap-[4vw] border-t border-linea pt-6">
-            <LogoMark className="text-[clamp(5.5rem,19vw,10rem)]" title="" />
-            <Firma className="pb-[0.15em] text-[clamp(3.6rem,15vw,10.5rem)]" />
-          </Link>
+
+          <div className="flex flex-col gap-3 border-t border-linea py-6 text-sm text-gris sm:flex-row sm:items-center sm:justify-between">
+            <p>© {new Date().getFullYear()} {settings.storeName || "Alma y Moda"}. Venta exclusiva por mayor.</p>
+            <div className="flex items-center gap-2">
+              <Link href="/admin" className="inline-flex min-h-11 items-center hover:text-tinta">
+                Panel de dueños
+              </Link>
+              <ThemeToggle className="inline-flex size-11 items-center justify-center rounded-xl hover:bg-piedra hover:text-tinta" />
+            </div>
+          </div>
         </div>
       </footer>
     </div>

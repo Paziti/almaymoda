@@ -318,8 +318,8 @@ export const useDB = create<DBState & Actions>()(
     }),
     {
       name: "almaymoda-db",
-      version: 2,
-      migrate: (persisted, version) => (version < 2 ? migrateToAccessories(persisted as Partial<DBState>) : persisted) as DBState,
+      version: 3,
+      migrate: (persisted, version) => (version < 3 ? refreshDemo(persisted as Partial<DBState>) : persisted) as DBState,
       storage: createJSONStorage(() => idbStorage),
       partialize: (s) => ({
         settings: s.settings,
@@ -342,15 +342,16 @@ export const useDB = create<DBState & Actions>()(
 const sameList = (a: string[] | undefined, b: string[]) => !!a && a.length === b.length && a.every((x, i) => x === b[i]);
 
 /**
- * v1 → v2: la tienda es de accesorios, no de ropa. Cambia los ejemplos de ropa por los nuevos
- * y los valores por defecto que nadie tocó. Lo que cargaron los dueños no se modifica.
+ * v1 → v2: la tienda es de accesorios, no de ropa. v2 → v3: los ejemplos suman fotos provisorias.
+ * Renueva los artículos de ejemplo y los valores por defecto que nadie tocó.
+ * Lo que cargaron los dueños no se modifica.
  */
-function migrateToAccessories(p: Partial<DBState>): Partial<DBState> {
+function refreshDemo(p: Partial<DBState>): Partial<DBState> {
   const s = p.settings;
   const settings = s && {
     ...s,
     categories: sameList(s.categories, LEGACY_CATEGORIAS) ? CATEGORIAS : s.categories,
-    sizes: sameList(s.sizes, LEGACY_MEDIDAS) ? MEDIDAS : s.sizes,
+    sizes: sameList(s.sizes, LEGACY_MEDIDAS) ? MEDIDAS : s.sizes.includes("500 ml") && !s.sizes.includes("280 ml") ? [...s.sizes.slice(0, s.sizes.indexOf("500 ml")), "280 ml", ...s.sizes.slice(s.sizes.indexOf("500 ml"))] : s.sizes,
     storeName: s.storeName === "almaymoda" ? defaultSettings.storeName : s.storeName,
     photoBackground: s.photoBackground === "#F3EEF1" ? defaultSettings.photoBackground : s.photoBackground,
   };

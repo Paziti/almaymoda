@@ -28,6 +28,10 @@ export function ProductCard({ product }: { product: Product }) {
     <Link href={`/producto?id=${product.id}`} className="group flex min-w-0 flex-col gap-3 rounded-[4px]">
       <div className="relative overflow-hidden rounded-[4px]">
         <ProductImage product={product} showLabel={stock > 0} className="transition-transform duration-700 group-hover:scale-[1.04]" />
+        {/* Con mouse, la segunda foto (otro color) aparece al pasar por encima; en el celular no hay hover y se ve la primera */}
+        {product.images.length > 1 && (
+          <ProductImage product={product} index={1} className="absolute inset-0 opacity-0 transition-[opacity,scale] duration-500 group-hover:scale-[1.04] group-hover:opacity-100" />
+        )}
         {stock <= 0 && <span className="absolute inset-x-0 top-0 bg-[#241f1b]/85 py-1.5 text-center text-sm font-semibold text-[#f8f4ef]">Sin stock</span>}
         <div className="absolute bottom-2.5 left-2.5">
           <PriceTag value={showPrice ? fmtMoney(price) : "Ver precio"} size="sm" />

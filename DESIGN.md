@@ -2,6 +2,8 @@
 
 > Dirección basada en la marca real del cliente: su logo y su cuenta de Instagram (@mayorista_almaymoda). El logo del sitio es una **reconstrucción tipográfica** de la foto de perfil (150 px); cuando el cliente entregue el archivo original, reemplazarlo en `src/components/logo.tsx`.
 
+**Fotos provisorias:** las fotos de `public/demo/` son recortes de publicaciones del Instagram del cliente, sólo para la demo (con su permiso). Van en los artículos de ejemplo; se reemplazan cuando los dueños cargan sus artículos con fotos propias desde el panel.
+
 **Qué venden:** accesorios por mayor en Bahía Blanca: carteras, bolsos, mochilas, billeteras, materos, térmicos, botellas y artículos de viaje. No es ropa: no hay talles, se eligen colores y, en algunos artículos, medidas (500 ml, 750 ml, chico/mediano/grande).
 
 **Lectura de diseño:** tienda mayorista para revendedoras que compran desde el celular, con lenguaje de revista de moda, más un panel de operación para los dueños.
@@ -25,13 +27,14 @@
 - **Figtree** (texto): legible en tamaños chicos en el celular, con números tabulares para precios y stock.
 
 ## Motivo de identidad
-- **El logo**: monograma "AM" con la firma cruzada. Aparece en el encabezado, el ícono de la pestaña y en grande en el pie.
+- **El logo**: monograma "AM" con la firma cruzada. Aparece en el encabezado, el ícono de la pestaña y en el pie.
 - **La etiqueta colgante**: precios, números de remito y el coeficiente del proveedor aparecen como una etiqueta de producto (forma con muesca y agujerito).
 
 ## Diagramación
-- Tienda: tapa de revista (titular Bodoni enorme, collage superpuesto de destacados y "líneas de tapa" con datos reales del catálogo), categorías como índice de revista con los colores reales de los artículos, "Recién llegados" en la franja oscura, la secuencia real de "cómo hacer un pedido" con numerales en contorno y el logo con la firma en grande en el pie.
+- Tienda: tapa de revista (titular Bodoni enorme, collage superpuesto de destacados y "líneas de tapa" con datos reales del catálogo), categorías como índice de revista con los colores reales de los artículos, "Recién llegados" en la franja oscura, la secuencia real de "cómo hacer un pedido" con numerales en contorno y un pie con enlaces reales.
 - Ficha de producto: si el artículo tiene una sola medida (casi todos), se eligen cantidades por color; si tiene varias, por medida dentro de cada color.
 - Las siluetas de artículos sin foto muestran el tipo de accesorio (cartera, bolso, mochila, billetera, matero, térmico, botella, valija, necessaire) con su color real; el fondo toma ese color muy diluido.
+- Pie: marca con una línea de qué hacen, enlaces reales agrupados (categorías con artículos, tu compra, contacto) y una barra con copyright, panel de dueños y tema. Sin columnas de relleno.
 - Fotos y tarjetas con radio mínimo (4px); botones y campos conservan un radio más suave para leerse como controles.
 - Panel: la pantalla de inicio se arma alrededor de la decisión del día (pedidos para atender, qué reponer). En el celular hay una barra inferior con un botón "+" central para cargar un artículo.
 
