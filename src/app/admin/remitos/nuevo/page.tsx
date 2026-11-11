@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { MagnifyingGlassIcon, TrashIcon, PlusIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
+import { variantLabel } from "@/lib/labels";
 import { fmtMoney, normalizeText, parseNumber, uid } from "@/lib/format";
 import { totalStock } from "@/lib/pricing";
 import { usePricer } from "@/lib/hooks";
@@ -195,8 +196,7 @@ function Builder() {
                     {picking.variants.map((v) => (
                       <li key={v.id} className="flex items-center justify-between gap-3 py-2">
                         <span className="min-w-0 text-sm">
-                          <span className="font-semibold">T.{v.size}</span>
-                          {v.color !== "Único" && ` ${v.color}`} <span className={v.stock > 0 ? "text-gris" : "text-peligro"}>· hay {v.stock}</span>
+                          <span className="font-semibold">{variantLabel(v.size, v.color)}</span> <span className={v.stock > 0 ? "text-gris" : "text-peligro"}>· hay {v.stock}</span>
                         </span>
                         <Stepper size="sm" label={`${v.color} ${v.size}`} value={pickQty[v.id] ?? 0} onChange={(n) => setPickQty({ ...pickQty, [v.id]: n })} />
                       </li>
@@ -222,8 +222,7 @@ function Builder() {
                       <p className="truncate font-semibold">{l.name}</p>
                       <p className="num text-sm text-gris">
                         {l.code}
-                        {l.size && ` · T.${l.size}`}
-                        {l.color && l.color !== "Único" && ` · ${l.color}`}
+                        {(l.size || l.color) && `, ${variantLabel(l.size, l.color)}`}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

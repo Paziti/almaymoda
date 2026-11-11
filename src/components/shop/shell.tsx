@@ -48,11 +48,7 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
       {hydrated && hasDemo && (
         <div className="bg-acento-suave text-tinta text-sm">
           <p className="mx-auto max-w-6xl px-4 py-2 text-center">
-            Estás viendo artículos de ejemplo. Se reemplazan desde el{" "}
-            <Link href="/admin" className="font-semibold underline underline-offset-2">
-              panel de dueños
-            </Link>
-            .
+            Estás viendo artículos y fotos de ejemplo. Los precios y el stock son de prueba.
           </p>
         </div>
       )}
@@ -184,9 +180,6 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
           <div className="flex flex-col gap-3 border-t border-linea py-6 text-sm text-gris sm:flex-row sm:items-center sm:justify-between">
             <p>© {new Date().getFullYear()} {settings.storeName || "Alma y Moda"}. Venta exclusiva por mayor.</p>
             <div className="flex items-center gap-2">
-              <Link href="/admin" className="inline-flex min-h-11 items-center hover:text-tinta">
-                Panel de dueños
-              </Link>
               <ThemeToggle className="inline-flex size-11 items-center justify-center rounded-xl hover:bg-piedra hover:text-tinta" />
             </div>
           </div>

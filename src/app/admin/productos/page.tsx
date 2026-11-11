@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { MagnifyingGlassIcon, PlusIcon, TShirtIcon, EyeSlashIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PlusIcon, HandbagIcon, EyeSlashIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
 import { fmtMoney, normalizeText } from "@/lib/format";
 import { stockLevel, totalStock } from "@/lib/pricing";
@@ -20,7 +20,7 @@ function Lista() {
   const suppliers = useDB((s) => s.suppliers);
   const settings = useDB((s) => s.settings);
   const pricer = usePricer();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(params.get("q") ?? "");
   const [cat, setCat] = useState("");
   const [sup, setSup] = useState("");
   const [estado, setEstado] = useState<Estado>((params.get("estado") as Estado) || "todos");
@@ -88,7 +88,7 @@ function Lista() {
         {products.length === 0 ? (
           <Panel>
             <EmptyState
-              icon={<TShirtIcon size={40} />}
+              icon={<HandbagIcon size={40} />}
               title="Todavía no hay artículos"
               action={
                 <div className="flex flex-wrap justify-center gap-2">

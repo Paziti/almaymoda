@@ -121,7 +121,7 @@ export function Switch({ checked, onChange, label, description, id }: { checked:
 
 export function Segmented<T extends string>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: { value: T; label: ReactNode }[]; label: string }) {
   return (
-    <div role="radiogroup" aria-label={label} className="inline-flex flex-wrap gap-1 rounded-xl bg-piedra p-1">
+    <div role="radiogroup" aria-label={label} className="inline-flex w-fit max-w-full flex-wrap gap-1 self-start rounded-xl bg-piedra p-1">
       {options.map((o) => (
         <button
           key={o.value}

@@ -2,6 +2,7 @@
 
 import type { Remito, Settings } from "./types";
 import { fmtDate, fmtMoney, remitoNumber } from "./format";
+import { variantLabel } from "./labels";
 
 export const remitoTotals = (r: Pick<Remito, "items" | "discount">) => {
   const subtotal = r.items.reduce((a, i) => a + i.qty * i.unitPrice, 0);
@@ -138,7 +139,7 @@ export async function buildRemitoPdf(r: Remito, s: Settings): Promise<Blob> {
 
 export function remitoMessage(r: Remito, s: Settings) {
   const { total, units } = remitoTotals(r);
-  const lines = r.items.map((i) => `• ${i.qty} × ${i.name}${i.size ? ` T.${i.size}` : ""}${i.color ? ` ${i.color}` : ""}`);
+  const lines = r.items.map((i) => `• ${i.qty} × ${i.name}${i.size || i.color ? `, ${variantLabel(i.size, i.color)}` : ""}`);
   return [
     `Hola ${r.customer.name || ""}! Te paso el remito N° ${remitoNumber(s.pointOfSale, r.number)} de ${s.storeName}.`,
     "",

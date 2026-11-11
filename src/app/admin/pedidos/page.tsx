@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChatCircleTextIcon, WhatsappLogoIcon, CaretDownIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
+import { variantLabel } from "@/lib/labels";
 import { fmtDateTime, fmtMoney } from "@/lib/format";
 import { whatsappUrl } from "@/lib/share";
 import type { OrderStatus } from "@/lib/types";
@@ -21,7 +23,17 @@ export default function PedidosPage() {
   const orders = useDB((s) => s.orders);
   const setStatus = useDB((s) => s.setOrderStatus);
   const remitos = useDB((s) => s.remitos);
-  const [filter, setFilter] = useState<"abiertos" | "todos">("abiertos");
+  // ?id= abre un pedido puntual (lo usa el buscador general del panel).
+  const focusId = useSearchParams().get("id");
+  const [filter, setFilter] = useState<"abiertos" | "todos">(focusId ? "todos" : "abiertos");
+  useEffect(() => {
+    if (!focusId) return;
+    const el = document.getElementById(`pedido-${focusId}`) as HTMLDetailsElement | null;
+    if (el) {
+      el.open = true;
+      el.scrollIntoView({ block: "center" });
+    }
+  }, [focusId]);
 
   const list = orders.filter((o) => filter === "todos" || o.status === "nuevo" || o.status === "confirmado").sort((a, b) => b.createdAt - a.createdAt);
 
@@ -54,7 +66,7 @@ export default function PedidosPage() {
               return (
                 <li key={o.id}>
                   <Panel as="article" className="overflow-hidden">
-                    <details className="group">
+                    <details id={`pedido-${o.id}`} className="group">
                       <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 [&::-webkit-details-marker]:hidden">
                         <div className="min-w-0 flex-1">
                           <p className="flex flex-wrap items-center gap-2 font-semibold">
@@ -78,8 +90,7 @@ export default function PedidosPage() {
                           {o.items.map((i, k) => (
                             <li key={k} className="flex justify-between gap-3 py-1.5">
                               <span className="min-w-0">
-                                <span className="num font-semibold">{i.qty} ×</span> <span className="num text-gris">{i.code}</span> {i.name} · T.{i.size}
-                                {i.color !== "Único" && ` ${i.color}`}
+                                <span className="num font-semibold">{i.qty} ×</span> <span className="num text-gris">{i.code}</span> {i.name}, {variantLabel(i.size, i.color)}
                               </span>
                               <span className="num shrink-0">{fmtMoney(i.qty * i.unitPrice)}</span>
                             </li>

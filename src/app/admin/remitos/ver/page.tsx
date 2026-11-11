@@ -7,6 +7,7 @@ const noopSubscribe = () => () => {};
 import { toast } from "sonner";
 import { DownloadSimpleIcon, EnvelopeIcon, ShareNetworkIcon, WhatsappLogoIcon, CheckIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
+import { variantLabel } from "@/lib/labels";
 import { fmtDate, fmtMoney, remitoNumber } from "@/lib/format";
 import { buildRemitoPdf, remitoFileName, remitoMessage, remitoTotals } from "@/lib/remito-pdf";
 import { canShareFiles, downloadBlob, mailtoUrl, shareFile, whatsappUrl } from "@/lib/share";
@@ -131,8 +132,7 @@ export default function RemitoPage() {
                   <li key={k} className="flex justify-between gap-3 px-4 py-2.5 text-sm">
                     <span className="min-w-0">
                       <span className="num font-semibold">{i.qty} ×</span> {i.name}
-                      {i.size && ` T.${i.size}`}
-                      {i.color && i.color !== "Único" && ` ${i.color}`}
+                      {(i.size || i.color) && `, ${variantLabel(i.size, i.color)}`}
                     </span>
                     <span className="num shrink-0">{fmtMoney(i.qty * i.unitPrice)}</span>
                   </li>

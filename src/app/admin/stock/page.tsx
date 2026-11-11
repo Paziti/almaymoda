@@ -5,6 +5,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { MagnifyingGlassIcon, PackageIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
+import { variantLabel } from "@/lib/labels";
 import { fmtDateTime, normalizeText } from "@/lib/format";
 import { totalStock } from "@/lib/pricing";
 import type { Product } from "@/lib/types";
@@ -224,7 +225,7 @@ export default function StockPage() {
                     <div className="min-w-0">
                       <p className="truncate font-semibold">{p?.name ?? "Artículo eliminado"}</p>
                       <p className="text-gris">
-                        {v ? `T.${v.size}${v.color !== "Único" ? ` ${v.color}` : ""} · ` : ""}
+                        {v ? `${variantLabel(v.size, v.color)} · ` : ""}
                         {m.reason} · {fmtDateTime(m.at)}
                       </p>
                     </div>

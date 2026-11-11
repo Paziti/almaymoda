@@ -36,7 +36,8 @@
 - Las siluetas de artículos sin foto muestran el tipo de accesorio (cartera, bolso, mochila, billetera, matero, térmico, botella, valija, necessaire) con su color real; el fondo toma ese color muy diluido.
 - Pie: marca con una línea de qué hacen, enlaces reales agrupados (categorías con artículos, tu compra, contacto) y una barra con copyright, panel de dueños y tema. Sin columnas de relleno.
 - Fotos y tarjetas con radio mínimo (4px); botones y campos conservan un radio más suave para leerse como controles.
-- Panel: la pantalla de inicio se arma alrededor de la decisión del día (pedidos para atender, qué reponer). En el celular hay una barra inferior con un botón "+" central para cargar un artículo.
+- Panel (referencia: paneles de Shopify, Stripe y Linear): barra lateral compacta con logo, buscador general (Ctrl/⌘ + K: secciones, artículos, clientes y pedidos), "Cargar artículo" como única acción con acento y navegación agrupada. El inicio saluda con la fecha, muestra cuatro indicadores reales (pedidos sin atender, remitos del mes, artículos publicados, stock a precio de venta) y debajo lo que hay que atender: pedidos, últimos remitos, qué reponer y atajos. En el celular hay una barra inferior con un botón "+" central para cargar un artículo.
+- **Acceso oculto:** la tienda no tiene ningún enlace al panel. Se entra escribiendo la dirección `/admin` (marcarla como favorita en los dispositivos de los dueños); el panel no se indexa en buscadores. El ingreso con PIN es una pantalla propia: marca a un lado, formulario al otro.
 
 ## Íconos
 - Phosphor (regular/relleno): cada ícono representa su sección.
