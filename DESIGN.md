@@ -1,33 +1,33 @@
 # DESIGN.md: almaymoda
 
-> Direction written by the developer (there was no brand guide from the client). Review it with almaymoda and adjust it to their real identity.
+> Dirección escrita por el desarrollador (el cliente no tenía guía de marca). Revisarla con almaymoda y ajustarla a su identidad real.
 
-**Design read:** a wholesale fashion store for resellers who buy from their phones, plus an operations panel for the owners. The visual language is a fashion magazine applied to a work tool.
+**Lectura de diseño:** tienda mayorista de moda para revendedoras que compran desde el celular, más un panel de operación para los dueños. El lenguaje visual es el de una revista de moda aplicado a una herramienta de trabajo.
 
-**Dials:**
-- Store: ENERGY 2 / RHYTHM 2 / MOTION 2
+**Diales:**
+- Tienda: ENERGY 2 / RHYTHM 2 / MOTION 2
 - Panel: ENERGY 1 / RHYTHM 1 / MOTION 1
 
-## Color (2 core + 1 accent)
-- **Ink** `#221B26` (deep eggplant): text and primary buttons. A tinted black reads as fashion, not as tech.
-- **Canvas** `#FBF9F8` with **Mauve** `#F1E9EE` surfaces: a very light pinkish neutral, so it isn't the usual cream.
-- **Raspberry** `#B8326A`: the only accent. Used for the main action, the featured price and the "Load item" button. Nowhere else.
-- Semantic colors (ok / warning / danger) and WhatsApp green are separate from the accent.
-- Dark mode with a toggle, tested in both themes.
+## Color (2 base + 1 acento)
+- **Tinta** `#221B26` (berenjena oscuro): texto y botones principales. Un negro teñido se lee como moda, no como tecnología.
+- **Lienzo** `#FBF9F8` con superficies **Malva** `#F1E9EE`: un neutro rosado muy claro, para no caer en el crema de siempre.
+- **Frambuesa** `#B8326A`: el único acento. Se usa en la acción principal, el precio destacado y el botón "Cargar artículo". En ningún otro lado.
+- Los colores semánticos (ok / alerta / peligro) y el verde de WhatsApp van aparte del acento.
+- Modo oscuro con selector, probado en los dos temas.
 
-## Type
-- **Bodoni Moda** (display): the Bodoni is *the* typeface of fashion magazines, and its name says "moda". Used only for headings and large numbers.
-- **Figtree** (body): open and legible at small sizes on phones, with tabular numerals for prices and stock.
+## Tipografía
+- **Bodoni Moda** (títulos): la Bodoni es *la* tipografía de las revistas de moda, y su nombre dice "moda". Sólo para títulos y números grandes.
+- **Figtree** (texto): abierta y legible en tamaños chicos en el celular, con números tabulares para precios y stock.
 
-## Identity motif
-- **The hang tag**: prices, delivery note numbers and the supplier coefficient appear as a clothing tag (a notched shape with a hole). It repeats throughout the store and the panel.
+## Motivo de identidad
+- **La etiqueta colgante**: precios, números de remito y el coeficiente del proveedor aparecen como una etiqueta de ropa (forma con muesca y agujerito). Se repite en la tienda y en el panel.
 
-## Layout
-- Store: an asymmetric hero (headline + a staggered collage of featured items), categories as a line of big serif type, a product grid, and a real "how to order" sequence.
-- Panel: the home screen is built around the day's decision (orders to handle, what to restock), not around generic stat cards. On phones there's a bottom nav with a central "+" button for the most frequent action: loading an item.
+## Diagramación
+- Tienda: portada asimétrica (titular + collage escalonado de destacados), categorías como una línea de tipografía serif grande, grilla de productos y una secuencia real de "cómo hacer un pedido".
+- Panel: la pantalla de inicio se arma alrededor de la decisión del día (pedidos para atender, qué reponer), no de tarjetas de estadísticas genéricas. En el celular hay una barra inferior con un botón "+" central para la acción más frecuente: cargar un artículo.
 
-## Icons
-- Phosphor (regular/fill): each icon represents its section (T-shirt = items, box = stock, receipt = delivery notes, truck = suppliers).
+## Íconos
+- Phosphor (regular/relleno): cada ícono representa su sección (remera = artículos, caja = stock, recibo = remitos, camión = proveedores).
 
-## Motion
-- Only one load-in moment in the store hero (a collage stagger) and transitions that respond to actions. `prefers-reduced-motion` is respected.
+## Movimiento
+- Un solo momento de entrada en la portada de la tienda (collage escalonado) y transiciones que responden a acciones. Se respeta `prefers-reduced-motion`.

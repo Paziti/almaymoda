@@ -1,31 +1,31 @@
 # almaymoda
 
-A wholesale store plus an owners' panel for [almaymoda](https://www.instagram.com/mayorista_almaymoda/).
+Tienda mayorista y panel de dueños para [almaymoda](https://www.instagram.com/mayorista_almaymoda/).
 
-## What it does
+## Qué hace
 
-**Store (customers)** `/`
-- Catalog with search, categories, size filter and live stock.
-- Product page where the customer picks quantities **per size and color**.
-- Order with a running total, minimum purchase, and sending via **WhatsApp** (the order is also saved in the panel).
-- "My account": signs in with a phone number and shows order history.
+**Tienda (clientas)** `/`
+- Catálogo con búsqueda, categorías, filtro por talle y stock en vivo.
+- Ficha de producto donde la clienta elige cantidades **por talle y color**.
+- Pedido con total, compra mínima y envío por **WhatsApp** (el pedido también queda guardado en el panel).
+- "Mi cuenta": ingresa con su teléfono y ve el historial de pedidos.
 
-**Owners' panel** `/admin` (demo PIN: `1234`, change it in Settings)
-- **Today**: unhandled web orders, items to restock, quick actions.
-- **Items**: load from your phone with a photo; **the AI removes the background** and centers the garment (runs in the browser, so photos are never uploaded anywhere). Size × color grid with stock.
-- **Prices**: cost × coefficient. Coefficient per item → per supplier → global, with rounding. Bulk changes (e.g. +12% from one supplier) with a preview before applying.
-- **Import list**: Excel, CSV, PDF with text, or the **Access database (.mdb/.accdb) from Jaque**. Detects the columns, reads Argentine-format numbers (`$ 12.345,67`) and shows new items, cost changes in % and stock to add before applying anything.
-- **Stock intake**: search by code, type quantities per size (add or correct by count). Movement log.
-- **Delivery notes (remitos)**: built from a web order or from scratch. Numbered PDF that you **send by WhatsApp or email** (on a phone it opens the share sheet with the PDF attached). Deducts stock, and voiding returns it.
-- Customers, suppliers, settings, backup export/import.
+**Panel de dueños** `/admin` (PIN de prueba: `1234`, se cambia en Ajustes)
+- **Hoy**: pedidos web sin atender, artículos para reponer y accesos rápidos.
+- **Artículos**: carga desde el celular con foto; **la IA quita el fondo** y centra la prenda (corre en el navegador, las fotos no se suben a ningún lado). Grilla de talles × colores con stock.
+- **Precios**: costo × coeficiente. Coeficiente por artículo → por proveedor → general, con redondeo. Cambios en bloque (ej: +12% de un proveedor) con vista previa antes de aplicar.
+- **Importar lista**: Excel, CSV, PDF con texto o la **base de Access (.mdb/.accdb) de Jaque**. Detecta las columnas, lee números en formato argentino (`$ 12.345,67`) y muestra artículos nuevos, cambios de costo en % y stock a sumar antes de aplicar nada.
+- **Ingreso de stock**: buscar por código y tipear cantidades por talle (sumar o corregir por conteo). Historial de movimientos.
+- **Remitos**: desde un pedido web o desde cero. PDF numerado que se **manda por WhatsApp o mail** (en el celular abre la hoja de compartir con el PDF adjunto). Descuenta stock y, si se anula, lo devuelve.
+- Clientes, proveedores, ajustes, respaldo (exportar/importar).
 
-## Stage 1 (this version)
+## Etapa 1 (esta versión)
 
-Data is stored **on each device** (IndexedDB). This is enough to try the whole system and show it. Use the backup feature in Settings to move data between devices.
+Los datos se guardan **en cada dispositivo** (IndexedDB). Alcanza para probar todo el sistema y mostrarlo. Para pasar datos entre dispositivos se usa el respaldo en Ajustes.
 
-Stage 2: a shared cloud database (Supabase/Postgres) and real user accounts. The data layer is in `src/lib/store.ts`, so that's what gets swapped out.
+Etapa 2: base de datos compartida en la nube (Supabase/Postgres) y cuentas de usuario reales. La capa de datos está en `src/lib/store.ts`, que es lo que se reemplaza.
 
-## Development
+## Desarrollo
 
 ```bash
 npm install
@@ -35,6 +35,6 @@ npm run build
 
 Stack: Next.js 16 (App Router), React 19, Tailwind 4, Zustand, SheetJS, pdf.js, mdb-reader, jsPDF, @imgly/background-removal.
 
-## Deploy
+## Publicar
 
-Import the repo on [vercel.com/new](https://vercel.com/new). It needs no environment variables.
+Importar el repo en [vercel.com/new](https://vercel.com/new). No necesita variables de entorno.
