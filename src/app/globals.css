@@ -260,6 +260,24 @@ a, button, summary, input, select, textarea, label {
   animation-delay: 0.12s;
 }
 
+/* Franja de marcas: se desplaza sola y se detiene al pasar el mouse */
+.marquesina {
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquesina-pista {
+  display: flex;
+  width: max-content;
+  animation: marquesina 38s linear infinite;
+}
+.marquesina:hover .marquesina-pista {
+  animation-play-state: paused;
+}
+@keyframes marquesina {
+  to { transform: translateX(-50%); }
+}
+
 /* Inputs numéricos sin flechas: se usan steppers propios con área táctil de 44px */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
@@ -295,5 +313,11 @@ dialog::backdrop {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  /* La franja queda quieta (una animación infinita de 0,01 ms parpadearía) */
+  .marquesina-pista {
+    animation: none !important;
+    flex-wrap: wrap;
+    width: auto;
   }
 }

@@ -12,6 +12,9 @@ import { ButtonLink, EmptyState, PriceTag, buttonClass } from "@/components/ui";
 import { ProductImage } from "@/components/product-image";
 import { ProductCard, usePriceVisible } from "@/components/shop/product-card";
 
+/** Marcas que se ven en las publicaciones de @mayorista_almaymoda. */
+const MARCAS = ["Trendy", "Discovery", "Oreiro Love", "Head", "Wilson", "Unicross", "Amayra", "Chimola", "Influencer", "Basilea"];
+
 export default function Home() {
   const products = useDB((s) => s.products);
   const settings = useDB((s) => s.settings);
@@ -26,7 +29,12 @@ export default function Home() {
   const categories = settings.categories
     .map((c) => {
       const items = visible.filter((p) => p.category === c);
-      return { name: c, count: items.length, swatches: [...new Set(items.map((p) => p.swatch).filter(Boolean))].slice(0, 5) as string[] };
+      return {
+        name: c,
+        count: items.length,
+        swatches: [...new Set(items.map((p) => p.swatch).filter(Boolean))].slice(0, 5) as string[],
+        sample: items.find((p) => p.images.length > 0),
+      };
     })
     .filter((c) => c.count > 0);
 
@@ -106,9 +114,24 @@ export default function Home() {
         )}
       </section>
 
+      {/* Marcas que trabaja el local (las que muestran en su Instagram) */}
+      <section aria-label="Marcas que trabajamos" className="border-y border-linea py-5">
+        <div className="marquesina" aria-hidden>
+          <div className="marquesina-pista">
+            {[...MARCAS, ...MARCAS].map((m, i) => (
+              <span key={i} className="flex shrink-0 items-center gap-10 pr-10 font-display text-[clamp(1.6rem,3.4vw,2.6rem)] italic leading-none text-tinta/85">
+                {m}
+                <span className="size-1.5 rounded-full bg-acento" />
+              </span>
+            ))}
+          </div>
+        </div>
+        <p className="sr-only">Marcas que trabajamos: {MARCAS.join(", ")}.</p>
+      </section>
+
       {/* Índice de categorías */}
       {categories.length > 0 && (
-        <section aria-labelledby="t-cat" className="mx-auto grid w-full max-w-6xl gap-6 px-4 pb-20 md:grid-cols-12 md:pb-28">
+        <section aria-labelledby="t-cat" className="mx-auto grid w-full max-w-6xl gap-6 px-4 pb-20 pt-16 md:grid-cols-12 md:pb-28 md:pt-24">
           <div className="md:col-span-3">
             <h2 id="t-cat" className="font-display text-3xl md:sticky md:top-24">
               Índice
@@ -116,9 +139,15 @@ export default function Home() {
           </div>
           <ul className="border-t border-tinta md:col-span-9">
             {categories.map((c) => (
-              <li key={c.name} className="border-b border-linea">
+              <li key={c.name} className="relative border-b border-linea">
                 <Link href={`/catalogo?cat=${encodeURIComponent(c.name)}`} className="group flex min-h-16 items-center justify-between gap-4 py-3 md:py-4">
                   <span className="font-display text-[clamp(2rem,6vw,3.6rem)] leading-none transition-transform duration-300 group-hover:translate-x-2 group-hover:italic">{c.name}</span>
+                  {/* Con mouse: una foto de la categoría asoma al pasar, como en un índice de revista */}
+                  {c.sample && (
+                    <span className="pointer-events-none absolute right-[30%] top-1/2 z-10 hidden w-24 -translate-y-1/2 rotate-[4deg] scale-90 overflow-hidden rounded-[4px] opacity-0 shadow-xl ring-4 ring-lienzo transition-[opacity,scale,rotate] duration-300 group-hover:rotate-[-3deg] group-hover:scale-100 group-hover:opacity-100 lg:block" aria-hidden>
+                      <ProductImage product={c.sample} showLabel={false} />
+                    </span>
+                  )}
                   <span className="flex shrink-0 items-center gap-3">
                     <span className="hidden -space-x-1.5 sm:flex" aria-hidden>
                       {c.swatches.map((s) => (
@@ -147,8 +176,16 @@ export default function Home() {
           </div>
           {latest.length ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
-              {latest.map((p) => (
-                <ProductCard key={p.id} product={p} />
+              {latest.map((p, i) => (
+                <motion.div
+                  key={p.id}
+                  className="min-w-0"
+                  {...(reduce
+                    ? {}
+                    : { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-60px" }, transition: { delay: (i % 4) * 0.08, duration: 0.6, ease: [0.2, 0.7, 0.2, 1] as const } })}
+                >
+                  <ProductCard product={p} />
+                </motion.div>
               ))}
             </div>
           ) : (

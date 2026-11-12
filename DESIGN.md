@@ -2,7 +2,7 @@
 
 > Dirección basada en la marca real del cliente: su logo y su cuenta de Instagram (@mayorista_almaymoda). El logo del sitio es una **reconstrucción tipográfica** de la foto de perfil (150 px); cuando el cliente entregue el archivo original, reemplazarlo en `src/components/logo.tsx`.
 
-**Fotos provisorias:** las fotos de `public/demo/` son recortes de publicaciones del Instagram del cliente, sólo para la demo (con su permiso). Van en los artículos de ejemplo; se reemplazan cuando los dueños cargan sus artículos con fotos propias desde el panel.
+**Fotos provisorias:** las fotos de `public/demo/` son recortes de publicaciones del Instagram del cliente, sólo para la demo (con su permiso). Van en los artículos de ejemplo (27, todos con foto: no se publican ejemplos sin imagen); se reemplazan cuando los dueños cargan sus artículos con fotos propias desde el panel.
 
 **Qué venden:** accesorios por mayor en Bahía Blanca: carteras, bolsos, mochilas, billeteras, materos, térmicos, botellas y artículos de viaje. No es ropa: no hay talles, se eligen colores y, en algunos artículos, medidas (500 ml, 750 ml, chico/mediano/grande).
 
@@ -43,4 +43,5 @@
 - Phosphor (regular/relleno): cada ícono representa su sección.
 
 ## Movimiento
-- Un solo momento de entrada en la tapa de la tienda (el titular sube y el collage aparece escalonado) y transiciones que responden a acciones. Los botones responden al toque con opacidad, sin mover el layout. Se respeta `prefers-reduced-motion`.
+- Un solo momento de entrada en la tapa de la tienda (el titular sube y el collage aparece escalonado) y transiciones que responden a acciones.
+- Inicio: una franja con las marcas que trabajan (las de su Instagram) que se desplaza sola y se detiene al pasar el mouse; en el índice, al pasar por una categoría asoma una foto de un artículo de esa categoría (sólo con mouse); "Recién llegados" entra escalonado una sola vez al llegar con el scroll. Los botones responden al toque con opacidad, sin mover el layout. Se respeta `prefers-reduced-motion`.
