@@ -12,7 +12,7 @@ import { fmtDate, fmtMoney, remitoNumber } from "@/lib/format";
 import { buildRemitoPdf, remitoFileName, remitoMessage, remitoTotals } from "@/lib/remito-pdf";
 import { canShareFiles, downloadBlob, mailtoUrl, shareFile, whatsappUrl } from "@/lib/share";
 import { remitoStatus } from "@/lib/labels";
-import { Badge, Button, ButtonLink, ConfirmButton, EmptyState, Panel } from "@/components/ui";
+import { Badge, Button, ButtonLink, ConfirmButton, EmptyState, Panel } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 export default function RemitoPage() {

@@ -3,26 +3,21 @@
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { WhatsappLogoIcon } from "@phosphor-icons/react";
-import { useDB } from "@/lib/store";
-import { totalStock } from "@/lib/pricing";
-import { fmtMoney } from "@/lib/format";
-import { usePricer } from "@/lib/hooks";
-import { whatsappUrl } from "@/lib/share";
-import { ButtonLink, EmptyState, PriceTag, buttonClass } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
-import { ProductCard, usePriceVisible } from "@/components/shop/product-card";
+import { useCatalogo, useLocal, usePrecio, useVerPrecios, totalStock, fmtMoney, whatsappUrl } from "@/lib/tienda";
+import { ButtonLink, EmptyState, PriceTag, buttonClass } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
+import { ProductCard } from "@/components/tienda/product-card";
 
 /** Marcas que se ven en las publicaciones de @mayorista_almaymoda. */
 const MARCAS = ["Trendy", "Discovery", "Oreiro Love", "Head", "Wilson", "Unicross", "Amayra", "Chimola", "Influencer", "Basilea"];
 
 export default function Home() {
-  const products = useDB((s) => s.products);
-  const settings = useDB((s) => s.settings);
-  const pricer = usePricer();
-  const showPrice = usePriceVisible();
+  const visible = useCatalogo();
+  const settings = useLocal();
+  const pricer = usePrecio();
+  const showPrice = useVerPrecios();
   const reduce = useReducedMotion();
 
-  const visible = products.filter((p) => p.active);
   const inStock = visible.filter((p) => totalStock(p) > 0);
   const featured = [...visible.filter((p) => p.featured && totalStock(p) > 0), ...visible.filter((p) => !p.featured)].slice(0, 3);
   const latest = [...visible].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8);

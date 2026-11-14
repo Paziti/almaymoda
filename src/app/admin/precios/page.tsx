@@ -6,7 +6,7 @@ import { useDB } from "@/lib/store";
 import { fmtCoef, fmtMoney, parseNumber } from "@/lib/format";
 import { salePrice } from "@/lib/pricing";
 import type { Product, Rounding, Supplier } from "@/lib/types";
-import { Button, Field, Input, Panel, Segmented, Select } from "@/components/ui";
+import { Button, Field, Input, Panel, Segmented, Select } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 type Action = "aumento" | "coef" | "quitar-coef";

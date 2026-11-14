@@ -11,8 +11,8 @@ import { totalStock } from "@/lib/pricing";
 import { usePricer } from "@/lib/hooks";
 import { remitoTotals } from "@/lib/remito-pdf";
 import type { Client, LineItem, Product } from "@/lib/types";
-import { Button, Field, IconButton, Input, Panel, Select, Spinner, Stepper, Switch, Textarea } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
+import { Button, Field, IconButton, Input, Panel, Select, Spinner, Stepper, Switch, Textarea } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 type Line = LineItem & { key: string };

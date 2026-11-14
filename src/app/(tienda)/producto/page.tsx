@@ -6,15 +6,10 @@ import { useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
-import { useDB } from "@/lib/store";
-import { useSession } from "@/lib/session";
-import { fmtMoney } from "@/lib/format";
-import { totalStock } from "@/lib/pricing";
-import { usePricer } from "@/lib/hooks";
-import { Button, ButtonLink, EmptyState, PriceTag, Stepper } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
-import { ProductCard, usePriceVisible } from "@/components/shop/product-card";
-import { variantLabel } from "@/lib/labels";
+import { useArticulo, useCatalogo, useCarrito, usePrecio, useVerPrecios, fmtMoney, totalStock, variantLabel } from "@/lib/tienda";
+import { Button, ButtonLink, EmptyState, PriceTag, Stepper } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
+import { ProductCard } from "@/components/tienda/product-card";
 
 export default function ProductoPage() {
   // Ruta única con ?id=: la key reinicia cantidades y foto al pasar de un artículo a otro.
@@ -24,12 +19,11 @@ export default function ProductoPage() {
 
 function ProductoView({ id }: { id: string }) {
   const router = useRouter();
-  const product = useDB((s) => s.products.find((p) => p.id === id && p.active));
-  const all = useDB((s) => s.products);
-  const cart = useSession((s) => s.cart);
-  const addMany = useSession((s) => s.addMany);
-  const pricer = usePricer();
-  const showPrice = usePriceVisible();
+  const product = useArticulo(id);
+  const all = useCatalogo();
+  const { cart, addMany } = useCarrito();
+  const pricer = usePrecio();
+  const showPrice = useVerPrecios();
   const [img, setImg] = useState(0);
   const [qty, setQty] = useState<Record<string, number>>({});
 
@@ -48,7 +42,7 @@ function ProductoView({ id }: { id: string }) {
   const singleSize = sizes.length <= 1;
   const inCart = (vid: string) => cart.find((l) => l.productId === product.id && l.variantId === vid)?.qty ?? 0;
   const units = Object.values(qty).reduce((a, b) => a + b, 0);
-  const related = all.filter((p) => p.active && p.id !== product.id && p.category === product.category && totalStock(p) > 0).slice(0, 4);
+  const related = all.filter((p) => p.id !== product.id && p.category === product.category && totalStock(p) > 0).slice(0, 4);
 
   const add = () => {
     const lines = Object.entries(qty)

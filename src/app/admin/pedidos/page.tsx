@@ -9,7 +9,7 @@ import { variantLabel } from "@/lib/labels";
 import { fmtDateTime, fmtMoney } from "@/lib/format";
 import { whatsappUrl } from "@/lib/share";
 import type { OrderStatus } from "@/lib/types";
-import { Badge, Button, ButtonLink, EmptyState, Panel, Segmented, buttonClass } from "@/components/ui";
+import { Badge, Button, ButtonLink, EmptyState, Panel, Segmented, buttonClass } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 const status: Record<OrderStatus, { label: string; tone: "acento" | "ok" | "neutral" | "peligro" }> = {

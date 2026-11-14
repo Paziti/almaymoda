@@ -10,7 +10,7 @@ import type { Product, Variant } from "@/lib/types";
 import { fmtCoef, fmtMoney, now, parseNumber, uid } from "@/lib/format";
 import { coefSourceLabel, effectiveCoefficient, roundPrice } from "@/lib/pricing";
 import { processPhoto, type PhotoStage } from "@/lib/image";
-import { Button, ConfirmButton, Field, Input, Panel, PriceTag, Segmented, Select, Switch, Textarea } from "@/components/ui";
+import { Button, ConfirmButton, Field, Input, Panel, PriceTag, Segmented, Select, Switch, Textarea } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "./shell";
 
 const key = (color: string, size: string) => `${color}|${size}`;

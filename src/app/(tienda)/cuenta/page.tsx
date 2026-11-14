@@ -2,12 +2,8 @@
 
 import { useState } from "react";
 import { SignOutIcon } from "@phosphor-icons/react";
-import { useDB } from "@/lib/store";
-import { useSession } from "@/lib/session";
-import { fmtDate, fmtMoney, uid } from "@/lib/format";
-import { Badge, Button, ButtonLink, EmptyState, Field, Input, Panel } from "@/components/ui";
-import type { OrderStatus } from "@/lib/types";
-import { variantLabel } from "@/lib/labels";
+import { useClienta, fmtDate, fmtMoney, variantLabel, type OrderStatus } from "@/lib/tienda";
+import { Badge, Button, ButtonLink, EmptyState, Field, Input, Panel } from "@/components/comun/ui";
 
 const statusTone: Record<OrderStatus, { label: string; tone: "acento" | "ok" | "neutral" | "peligro" }> = {
   nuevo: { label: "Recibido", tone: "acento" },
@@ -17,13 +13,7 @@ const statusTone: Record<OrderStatus, { label: string; tone: "acento" | "ok" | "
 };
 
 export default function CuentaPage() {
-  const clientId = useSession((s) => s.clientId);
-  const login = useSession((s) => s.login);
-  const logout = useSession((s) => s.logout);
-  const clients = useDB((s) => s.clients);
-  const orders = useDB((s) => s.orders);
-  const saveClient = useDB((s) => s.saveClient);
-  const me = clients.find((c) => c.id === clientId);
+  const { clienta: me, pedidos: mine, ingresar, registrar, salir: logout } = useClienta();
 
   const [step, setStep] = useState<"phone" | "register">("phone");
   const [phone, setPhone] = useState("");
@@ -31,7 +21,6 @@ export default function CuentaPage() {
   const [error, setError] = useState("");
 
   if (me) {
-    const mine = orders.filter((o) => o.clientId === me.id).sort((a, b) => b.createdAt - a.createdAt);
     return (
       <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -87,7 +76,6 @@ export default function CuentaPage() {
   }
 
   const digits = phone.replace(/\D/g, "");
-  const findByPhone = () => clients.find((c) => digits.length >= 8 && c.phone.replace(/\D/g, "").endsWith(digits.slice(-8)));
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
@@ -107,9 +95,7 @@ export default function CuentaPage() {
                 return setError("Escribí tu teléfono con código de área.");
               }
               setError("");
-              const c = findByPhone();
-              if (c) login(c.id);
-              else setStep("register");
+              if (!ingresar(phone)) setStep("register");
             }}
           >
             <Field label="Teléfono / WhatsApp" htmlFor="c-phone" error={error}>
@@ -129,9 +115,7 @@ export default function CuentaPage() {
                 document.getElementById("r-name")?.focus();
                 return setError("Escribí tu nombre.");
               }
-              const c = { id: uid("c"), name: form.name.trim(), business: form.business, city: form.city, email: form.email, phone, address: "", cuit: "", notes: "Alta desde la tienda", createdAt: Date.now() };
-              saveClient(c);
-              login(c.id);
+              registrar({ ...form, phone });
             }}
           >
             <p className="text-sm text-gris">Es tu primera vez con el {phone}. Completá tus datos.</p>

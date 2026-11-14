@@ -9,7 +9,7 @@ import { fmtCoef, parseNumber, uid } from "@/lib/format";
 import { totalStock } from "@/lib/pricing";
 import { whatsappUrl } from "@/lib/share";
 import type { Supplier } from "@/lib/types";
-import { Button, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Textarea, buttonClass } from "@/components/ui";
+import { Button, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Textarea, buttonClass } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 const blank = (): Supplier => ({ id: uid("s"), name: "", contact: "", phone: "", email: "", coefficient: null, notes: "" });

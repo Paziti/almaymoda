@@ -10,7 +10,7 @@ import { fmtDateTime, fmtMoney, fmtNumber, parseNumber } from "@/lib/format";
 import { salePrice } from "@/lib/pricing";
 import { ACCEPTED, parseFile, type ParseResult } from "@/lib/import/parse";
 import { buildDiff, diffToChanges, FIELD_LABELS, guessMapping, type BuildOptions, type DiffKind, type DiffRow, type FieldKey } from "@/lib/import/mapping";
-import { Badge, Button, ButtonLink, Field, Input, Panel, Segmented, Select, Spinner, Switch } from "@/components/ui";
+import { Badge, Button, ButtonLink, Field, Input, Panel, Segmented, Select, Spinner, Switch } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 type Step = 1 | 2 | 3 | 4;

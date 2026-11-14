@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ProductForm } from "@/components/admin/product-form";
-import { Spinner } from "@/components/ui";
+import { Spinner } from "@/components/comun/ui";
 
 function Nuevo() {
   // "Guardar y cargar otro" cambia ?r= para arrancar un formulario limpio.

@@ -27,9 +27,9 @@ import {
 } from "@phosphor-icons/react";
 import { useDB, useHydrated } from "@/lib/store";
 import { adminAuth } from "@/lib/session";
-import { Button, Field, Input, Spinner } from "@/components/ui";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { LogoMark } from "@/components/logo";
+import { Button, Field, Input, Spinner } from "@/components/comun/ui";
+import { ThemeToggle } from "@/components/comun/theme-toggle";
+import { LogoMark } from "@/components/comun/logo";
 import { CommandPalette, type CommandPage } from "@/components/admin/command";
 
 interface NavItem {

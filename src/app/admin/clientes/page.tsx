@@ -8,7 +8,7 @@ import { useDB } from "@/lib/store";
 import { normalizeText, uid } from "@/lib/format";
 import { whatsappUrl } from "@/lib/share";
 import type { Client } from "@/lib/types";
-import { Button, ButtonLink, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Spinner, Textarea, buttonClass } from "@/components/ui";
+import { Button, ButtonLink, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Spinner, Textarea, buttonClass } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 const blank = (): Client => ({ id: uid("c"), name: "", business: "", phone: "", email: "", city: "", address: "", cuit: "", notes: "", createdAt: Date.now() });

@@ -4,17 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { InstagramLogoIcon, WhatsappLogoIcon, UserIcon, ShoppingBagIcon, MapPinIcon, ClockIcon } from "@phosphor-icons/react";
-import { useDB, useHydrated } from "@/lib/store";
-import { useSession } from "@/lib/session";
-import { useHasDemo } from "@/lib/hooks";
-import { whatsappUrl } from "@/lib/share";
-import { Spinner } from "@/components/ui";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { LogoMark } from "@/components/logo";
+import { useListo, useHayEjemplos, useLocal, useCarrito, useCatalogo, whatsappUrl } from "@/lib/tienda";
+import { Spinner } from "@/components/comun/ui";
+import { ThemeToggle } from "@/components/comun/theme-toggle";
+import { LogoMark } from "@/components/comun/logo";
 
 /** Logo + nombre. Escala con el font-size del contenedor. */
 export function Wordmark({ className, nameClassName }: { className?: string; nameClassName?: string }) {
-  const name = useDB((s) => s.settings.storeName);
+  const name = useLocal().storeName;
   return (
     <span className={clsx("inline-flex items-center gap-[0.35em]", className)}>
       <LogoMark className="text-[1.75em]" title="" />
@@ -24,16 +21,16 @@ export function Wordmark({ className, nameClassName }: { className?: string; nam
 }
 
 export function ShopShell({ children }: { children: React.ReactNode }) {
-  const hydrated = useHydrated();
+  const hydrated = useListo();
   const pathname = usePathname();
-  const cart = useSession((s) => s.cart);
-  const products = useDB((s) => s.products);
+  const { cart } = useCarrito();
+  const products = useCatalogo();
   // Sólo cuenta líneas cuyo artículo y variante siguen existiendo (igual que la pantalla del pedido).
   const cartUnits = cart.reduce((a, l) => (products.some((p) => p.id === l.productId && p.variants.some((v) => v.id === l.variantId)) ? a + l.qty : a), 0);
-  const settings = useDB((s) => s.settings);
-  const hasDemo = useHasDemo();
+  const settings = useLocal();
+  const hasDemo = useHayEjemplos();
   // Categorías del pie: sólo las que tienen artículos publicados (nada de enlaces a páginas vacías).
-  const footerCats = settings.categories.filter((c) => products.some((p) => p.active && p.category === c)).slice(0, 6);
+  const footerCats = settings.categories.filter((c) => products.some((p) => p.category === c)).slice(0, 6);
 
   const nav = [
     { href: "/catalogo", label: "Catálogo" },

@@ -8,8 +8,8 @@ import { useDB } from "@/lib/store";
 import { fmtMoney, normalizeText } from "@/lib/format";
 import { stockLevel, totalStock } from "@/lib/pricing";
 import { usePricer } from "@/lib/hooks";
-import { Badge, ButtonLink, EmptyState, Input, Panel, PriceTag, Select, Spinner } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
+import { Badge, ButtonLink, EmptyState, Input, Panel, PriceTag, Select, Spinner } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 type Estado = "todos" | "sin" | "bajo" | "ocultos";

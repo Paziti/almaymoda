@@ -9,8 +9,8 @@ import { totalStock } from "@/lib/pricing";
 import { usePricer, useHasDemo } from "@/lib/hooks";
 import { remitoTotals } from "@/lib/remito-pdf";
 import { remitoStatus } from "@/lib/labels";
-import { Badge, ButtonLink, Panel } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
+import { Badge, ButtonLink, Panel } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
 import { pagePad } from "@/components/admin/shell";
 
 function greeting(h: number) {

@@ -3,32 +3,19 @@
 import Link from "next/link";
 import { useState } from "react";
 import { TrashIcon, WhatsappLogoIcon, CheckCircleIcon } from "@phosphor-icons/react";
-import { useDB } from "@/lib/store";
-import { useSession } from "@/lib/session";
-import { fmtMoney, now, uid } from "@/lib/format";
-import { usePricer } from "@/lib/hooks";
-import { whatsappUrl } from "@/lib/share";
-import type { LineItem, Order } from "@/lib/types";
-import { Button, ButtonLink, EmptyState, Field, IconButton, Input, Panel, Stepper, Textarea } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
-import { usePriceVisible } from "@/components/shop/product-card";
-import { variantLabel } from "@/lib/labels";
+import { useCarrito, useCatalogo, useClienta, useEnviarPedido, useLocal, usePrecio, useVerPrecios, fmtMoney, variantLabel, whatsappUrl, type LineItem, type Order } from "@/lib/tienda";
+import { Button, ButtonLink, EmptyState, Field, IconButton, Input, Panel, Stepper, Textarea } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
 
 export default function PedidoPage() {
-  const cart = useSession((s) => s.cart);
-  const setQty = useSession((s) => s.setQty);
-  const clearCart = useSession((s) => s.clearCart);
-  const clientId = useSession((s) => s.clientId);
-  const login = useSession((s) => s.login);
-  const products = useDB((s) => s.products);
-  const clients = useDB((s) => s.clients);
-  const settings = useDB((s) => s.settings);
-  const createOrder = useDB((s) => s.createOrder);
-  const saveClient = useDB((s) => s.saveClient);
-  const pricer = usePricer();
-  const showPrice = usePriceVisible();
+  const { cart, setQty, clearCart } = useCarrito();
+  const { clienta: me } = useClienta();
+  const products = useCatalogo();
+  const settings = useLocal();
+  const enviarPedido = useEnviarPedido();
+  const pricer = usePrecio();
+  const showPrice = useVerPrecios();
 
-  const me = clients.find((c) => c.id === clientId);
   const [form, setForm] = useState({ name: me?.name ?? "", phone: me?.phone ?? "", business: me?.business ?? "", city: me?.city ?? "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState<{ order: Order; url: string | null } | null>(null);
@@ -86,18 +73,8 @@ export default function PedidoPage() {
       return;
     }
 
-    const digits = form.phone.replace(/\D/g, "");
-    let client = clients.find((c) => c.phone.replace(/\D/g, "").endsWith(digits.slice(-8)) && digits.length >= 8);
-    if (!client) {
-      client = { id: uid("c"), name: form.name, business: form.business, phone: form.phone, email: "", city: form.city, address: "", cuit: "", notes: "Alta desde la tienda", createdAt: now() };
-    } else {
-      client = { ...client, name: form.name || client.name, business: form.business || client.business, city: form.city || client.city };
-    }
-    saveClient(client);
-    login(client.id);
-
     const items: LineItem[] = lines.map((l) => ({ productId: l.p.id, variantId: l.v.id, code: l.p.code, name: l.p.name, size: l.v.size, color: l.v.color, qty: l.qty, unitPrice: l.price }));
-    const order = createOrder({ clientId: client.id, customer: { name: form.name, phone: form.phone, business: form.business, city: form.city }, items, notes: form.notes });
+    const order = enviarPedido({ customer: { name: form.name, phone: form.phone, business: form.business, city: form.city }, items, notes: form.notes });
 
     const text = [
       `Hola! Soy ${form.name}${form.business ? ` (${form.business})` : ""}${form.city ? `, de ${form.city}` : ""}. Quiero hacer este pedido (N° ${order.number}):`,

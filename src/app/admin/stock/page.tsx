@@ -9,8 +9,8 @@ import { variantLabel } from "@/lib/labels";
 import { fmtDateTime, normalizeText } from "@/lib/format";
 import { totalStock } from "@/lib/pricing";
 import type { Product } from "@/lib/types";
-import { Button, EmptyState, Input, Panel, Segmented } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
+import { Button, EmptyState, Input, Panel, Segmented } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 export default function StockPage() {

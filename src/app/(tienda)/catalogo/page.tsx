@@ -4,20 +4,17 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
-import { useDB } from "@/lib/store";
-import { normalizeText } from "@/lib/format";
-import { totalStock } from "@/lib/pricing";
-import { usePricer } from "@/lib/hooks";
-import { Button, EmptyState, Input, Select, Spinner, Switch } from "@/components/ui";
-import { ProductCard } from "@/components/shop/product-card";
+import { useCatalogo, useLocal, usePrecio, normalizeText, totalStock } from "@/lib/tienda";
+import { Button, EmptyState, Input, Select, Spinner, Switch } from "@/components/comun/ui";
+import { ProductCard } from "@/components/tienda/product-card";
 
 type Sort = "nuevos" | "precio-asc" | "precio-desc" | "nombre";
 
 function Catalogo() {
   const params = useSearchParams();
-  const products = useDB((s) => s.products);
-  const settings = useDB((s) => s.settings);
-  const pricer = usePricer();
+  const visible = useCatalogo();
+  const settings = useLocal();
+  const pricer = usePrecio();
 
   // Los filtros viven en la URL: un link compartido o el botón "atrás" muestran lo mismo.
   const cat = params.get("cat") ?? "";
@@ -45,7 +42,6 @@ function Catalogo() {
   const setSort = (v: Sort) => setParams({ orden: v === "nuevos" ? "" : v });
   const setOnlyStock = (v: boolean) => setParams({ stock: v ? "" : "todos" });
 
-  const visible = products.filter((p) => p.active);
   const cats = settings.categories.filter((c) => visible.some((p) => p.category === c));
   const sizesAvailable = settings.sizes.filter((s) => s !== "Único" && visible.some((p) => p.variants.some((v) => v.size === s && v.stock > 0)));
 

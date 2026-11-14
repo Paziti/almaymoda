@@ -1,0 +1,18 @@
+# Quién revisa qué (ver COLABORAR.md).
+
+# Atrás: panel, datos y configuración
+/src/app/admin/        @Paziti
+/src/components/admin/ @Paziti
+/src/lib/              @Paziti
+/.github/              @Paziti
+/.claude/              @Paziti
+/CLAUDE.md             @Paziti
+/eslint.config.mjs     @Paziti
+
+# Frente: tienda
+/src/app/(tienda)/      @sebapicallo12
+/src/components/tienda/ @sebapicallo12
+
+# Compartido: revisan los dos
+/src/components/comun/ @Paziti @sebapicallo12
+/src/app/globals.css   @Paziti @sebapicallo12

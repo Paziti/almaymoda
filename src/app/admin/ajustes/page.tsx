@@ -8,7 +8,7 @@ import { fmtCoef, parseNumber, remitoNumber } from "@/lib/format";
 import { downloadBlob } from "@/lib/share";
 import { useHasDemo } from "@/lib/hooks";
 import type { Settings } from "@/lib/types";
-import { Button, ConfirmButton, Field, Input, Panel, Switch, Textarea } from "@/components/ui";
+import { Button, ConfirmButton, Field, Input, Panel, Switch, Textarea } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 const PHOTO_BGS = [

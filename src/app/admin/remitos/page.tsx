@@ -7,7 +7,7 @@ import { useDB } from "@/lib/store";
 import { fmtDate, fmtMoney, normalizeText, remitoNumber } from "@/lib/format";
 import { remitoTotals } from "@/lib/remito-pdf";
 import { remitoStatus } from "@/lib/labels";
-import { Badge, ButtonLink, EmptyState, Input, Panel } from "@/components/ui";
+import { Badge, ButtonLink, EmptyState, Input, Panel } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 export default function RemitosPage() {

@@ -46,3 +46,6 @@ next-env.d.ts
 .agents/
 .claude/skills/
 skills-lock.json
+
+# Ajustes personales de Claude Code
+.claude/settings.local.json

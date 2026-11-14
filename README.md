@@ -27,6 +27,8 @@ Etapa 2: base de datos compartida en la nube (Supabase/Postgres) y cuentas de us
 
 ## Desarrollo
 
+El código está dividido en **tienda** (frente) y **panel + datos** (atrás). Quién toca qué y cómo se conectan: [COLABORAR.md](COLABORAR.md).
+
 ```bash
 npm install
 npm run dev      # http://localhost:3000

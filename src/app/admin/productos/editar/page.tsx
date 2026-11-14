@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useDB } from "@/lib/store";
 import { ProductForm } from "@/components/admin/product-form";
-import { ButtonLink, EmptyState } from "@/components/ui";
+import { ButtonLink, EmptyState } from "@/components/comun/ui";
 
 export default function Page() {
   const id = useSearchParams().get("id") ?? "";

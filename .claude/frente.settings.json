@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(src/lib/**)",
+      "Write(src/lib/**)",
+      "Edit(src/app/admin/**)",
+      "Write(src/app/admin/**)",
+      "Edit(src/components/admin/**)",
+      "Write(src/components/admin/**)",
+      "Edit(.github/**)",
+      "Write(.github/**)",
+      "Edit(eslint.config.mjs)",
+      "Edit(CLAUDE.md)",
+      "Edit(.claude/**)",
+      "Bash(git push origin main*)",
+      "Bash(git push * main*)",
+      "Bash(git checkout main*)",
+      "Bash(git switch main*)",
+      "Bash(git merge*)"
+    ]
+  }
+}

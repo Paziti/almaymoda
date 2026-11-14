@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/shell";
-import { Spinner } from "@/components/ui";
+import { Spinner } from "@/components/comun/ui";
 
 export const metadata: Metadata = { title: "Panel", robots: { index: false, follow: false } };
 

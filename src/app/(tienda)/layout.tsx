@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { ShopShell } from "@/components/shop/shell";
-import { Spinner } from "@/components/ui";
+import { ShopShell } from "@/components/tienda/shell";
+import { Spinner } from "@/components/comun/ui";
 
 export default function TiendaLayout({ children }: { children: React.ReactNode }) {
   return (

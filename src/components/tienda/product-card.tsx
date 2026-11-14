@@ -1,25 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import type { Product } from "@/lib/types";
-import { fmtMoney } from "@/lib/format";
-import { totalStock } from "@/lib/pricing";
-import { usePricer } from "@/lib/hooks";
-import { useDB } from "@/lib/store";
-import { useSession } from "@/lib/session";
-import { PriceTag } from "@/components/ui";
-import { ProductImage } from "@/components/product-image";
-
-export function usePriceVisible() {
-  const requireLogin = useDB((s) => s.settings.pricesRequireLogin);
-  const clientId = useSession((s) => s.clientId);
-  return !requireLogin || !!clientId;
-}
+import { usePrecio, useVerPrecios, useLocal, fmtMoney, totalStock, type Product } from "@/lib/tienda";
+import { PriceTag } from "@/components/comun/ui";
+import { ProductImage } from "@/components/comun/product-image";
 
 export function ProductCard({ product }: { product: Product }) {
-  const price = usePricer()(product);
-  const showPrice = usePriceVisible();
-  const low = useDB((s) => s.settings.lowStock);
+  const price = usePrecio()(product);
+  const showPrice = useVerPrecios();
+  const low = useLocal().lowStock;
   const stock = totalStock(product);
   const sizes = [...new Set(product.variants.filter((v) => v.stock > 0 && v.size !== "Único").map((v) => v.size))];
   const colors = new Set(product.variants.filter((v) => v.stock > 0).map((v) => v.color)).size;
