@@ -39,10 +39,10 @@ Stack: Next.js 16 (App Router), React 19, Tailwind 4, Zustand, SheetJS, pdf.js, 
 
 ## Publicar
 
-**GitHub Pages (actual):** https://paziti.github.io/almaymoda/
+**Sitio real (Vercel):** https://almaymoda.vercel.app. Cada push a `main` se publica solo.
 
-Cada push a `main` construye el sitio estático y lo publica solo (`.github/workflows/pages.yml`). Para probar la exportación localmente: `GITHUB_PAGES=true npm run build` (genera la carpeta `out/`).
+**Vidriera de prueba (GitHub Pages):** https://paziti.github.io/almaymoda/. Publica la rama `frente`, para ver los cambios de la tienda antes de unirlos a `main` (`.github/workflows/pages.yml`). Para probar la exportación localmente: `GITHUB_PAGES=true npm run build` (genera la carpeta `out/`).
 
 Como Pages sólo sirve archivos estáticos, las fichas usan `?id=` (`/producto/?id=...`, `/admin/productos/editar/?id=...`, `/admin/remitos/ver/?id=...`).
 
-**Vercel (alternativa):** importar el repo en [vercel.com/new](https://vercel.com/new). No necesita variables de entorno.
+Vercel no necesita variables de entorno.

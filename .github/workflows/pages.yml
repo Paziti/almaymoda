@@ -1,8 +1,11 @@
 name: Publicar en GitHub Pages
 
+# Pages es la vidriera de prueba del frente: publica la rama `frente`.
+# El sitio real (Vercel) se publica desde `main`.
+
 on:
   push:
-    branches: [main]
+    branches: [frente]
   workflow_dispatch:
 
 permissions:

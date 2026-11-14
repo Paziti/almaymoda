@@ -60,9 +60,9 @@ Así, cuando la parte de atrás pase a Supabase (etapa 2), la tienda sigue funci
    cp .claude/frente.settings.json .claude/settings.local.json
    ```
 4. Abrir Claude en la carpeta (`claude`) y pedirle cambios: "cambiá la tapa", "hacé más grandes las fotos del catálogo"...
-5. Para mostrar el avance: pedirle a Claude "hacé commit y push a frente".
+5. Para ver los cambios publicados: pedirle a Claude "hacé commit y push a frente". En un minuto aparecen en https://paziti.github.io/almaymoda/ (la vidriera de prueba; las clientas no la usan).
 
-El sitio de las clientas solo cambia con lo que entra a `main`, y eso lo une Agustín cuando está aprobado.
+El sitio de las clientas (almaymoda.vercel.app) solo cambia con lo que entra a `main`, y eso lo une Agustín cuando está aprobado.
 
 ## Probar en tu compu
 
