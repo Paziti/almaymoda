@@ -62,6 +62,7 @@ export default function AjustesPage() {
 
   const [form, setForm] = useState<Settings>(settings);
   const [coefText, setCoefText] = useState(fmtCoef(settings.coefficient));
+  const [markupText, setMarkupText] = useState(String(settings.retailMarkup ?? 30));
   const [minText, setMinText] = useState(settings.minPurchase ? String(settings.minPurchase) : "");
   const [pin2, setPin2] = useState(settings.pin);
 
@@ -71,8 +72,10 @@ export default function AjustesPage() {
   const save = () => {
     const coef = parseNumber(coefText);
     if (!coef || coef <= 0) return toast.error("El coeficiente general tiene que ser mayor a 0.");
+    const markup = parseNumber(markupText) ?? 0;
+    if (markup < 0) return toast.error("El recargo minorista no puede ser negativo.");
     if (pin2.length < 4) return toast.error("El PIN tiene que tener al menos 4 números.");
-    updateSettings({ ...form, coefficient: coef, minPurchase: parseNumber(minText) ?? 0, pin: pin2, nextRemito: Math.max(1, Math.round(form.nextRemito)) });
+    updateSettings({ ...form, coefficient: coef, retailMarkup: markup, minPurchase: parseNumber(minText) ?? 0, pin: pin2, nextRemito: Math.max(1, Math.round(form.nextRemito)) });
     toast.success("Ajustes guardados");
   };
 
@@ -135,6 +138,9 @@ export default function AjustesPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Coeficiente general" htmlFor="s-coef" hint="Se usa si el artículo y el proveedor no tienen uno propio">
                 <Input id="s-coef" inputMode="decimal" className="num" value={coefText} onChange={(e) => setCoefText(e.target.value)} />
+              </Field>
+              <Field label="Recargo minorista (%)" htmlFor="s-retail" hint="Se suma al mayorista para vender en el local o a particulares">
+                <Input id="s-retail" inputMode="decimal" className="num" placeholder="30" value={markupText} onChange={(e) => setMarkupText(e.target.value)} />
               </Field>
               <Field label="Compra mínima ($)" htmlFor="s-min" hint="0 = sin mínimo">
                 <Input id="s-min" inputMode="decimal" className="num" value={minText} onChange={(e) => setMinText(e.target.value)} />

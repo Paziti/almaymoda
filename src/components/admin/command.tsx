@@ -56,7 +56,7 @@ export function CommandPalette({ open, onClose, pages }: { open: boolean; onClos
     if (n) {
       out.push(
         ...products
-          .filter((p) => match(`${p.name} ${p.code} ${p.category}`))
+          .filter((p) => match(`${p.name} ${p.code} ${p.category} ${p.barcode ?? ""}`))
           .slice(0, 6)
           .map((p) => ({ id: p.id, href: `/admin/productos/editar?id=${p.id}`, label: p.name, hint: p.code, icon: HandbagIcon, group: "Artículos" })),
         ...clients

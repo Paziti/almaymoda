@@ -6,8 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { MagnifyingGlassIcon, PlusIcon, HandbagIcon, EyeSlashIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
 import { fmtMoney, normalizeText } from "@/lib/format";
+import { cleanBarcode, looksLikeBarcode, newProductHref, productSearchText } from "@/lib/barcode";
 import { stockLevel, totalStock } from "@/lib/pricing";
-import { usePricer } from "@/lib/hooks";
+import { useListPricer } from "@/lib/hooks";
 import { Badge, ButtonLink, EmptyState, Input, Panel, PriceTag, Select, Spinner } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
@@ -19,7 +20,7 @@ function Lista() {
   const products = useDB((s) => s.products);
   const suppliers = useDB((s) => s.suppliers);
   const settings = useDB((s) => s.settings);
-  const pricer = usePricer();
+  const pricer = useListPricer();
   const [q, setQ] = useState(params.get("q") ?? "");
   const [cat, setCat] = useState("");
   const [sup, setSup] = useState("");
@@ -35,7 +36,7 @@ function Lista() {
         if (estado === "sin" && lvl !== "sin") return false;
         if (estado === "bajo" && lvl === "ok") return false;
         if (estado === "ocultos" && p.active) return false;
-        if (nq && !normalizeText(`${p.name} ${p.code}`).includes(nq)) return false;
+        if (nq && !normalizeText(productSearchText(p)).includes(looksLikeBarcode(q) ? cleanBarcode(q) : nq)) return false;
         return true;
       })
       .sort((a, b) => b.updatedAt - a.updatedAt);
@@ -58,7 +59,7 @@ function Lista() {
         <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">
           <div className="relative">
             <MagnifyingGlassIcon size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gris" />
-            <Input type="search" aria-label="Buscar" placeholder="Buscar por nombre o código" className="pl-11" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
+            <Input type="search" aria-label="Buscar" placeholder="Nombre, código o pistoleá el código de barras" className="pl-11" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
           </div>
           <div className="grid grid-cols-3 gap-2 md:contents">
             <Select aria-label="Categoría" value={cat} onChange={(e) => setCat(e.target.value)}>
@@ -106,7 +107,20 @@ function Lista() {
           </Panel>
         ) : list.length === 0 ? (
           <Panel>
-            <EmptyState title="Ningún artículo coincide">Probá con otro nombre o cambiá los filtros.</EmptyState>
+            {looksLikeBarcode(q) ? (
+              <EmptyState
+                title="Ese código de barras no está cargado"
+                action={
+                  <ButtonLink href={newProductHref(q)} variant="accent">
+                    Cargar artículo con este código
+                  </ButtonLink>
+                }
+              >
+                Si el artículo ya existe, abrilo y pegale el código de barras.
+              </EmptyState>
+            ) : (
+              <EmptyState title="Ningún artículo coincide">Probá con otro nombre o cambiá los filtros.</EmptyState>
+            )}
           </Panel>
         ) : (
           <Panel as="div" className="overflow-hidden">
@@ -144,7 +158,10 @@ function Lista() {
                       <span className="num hidden text-right text-sm text-gris md:block">{fmtMoney(p.cost)}</span>
                       <span className="col-start-2 col-end-4 flex items-center justify-between gap-2 md:col-auto md:justify-end">
                         <span className="num text-sm text-gris md:hidden">Costo {fmtMoney(p.cost)}</span>
-                        <PriceTag value={fmtMoney(pricer(p))} size="sm" />
+                        <span className="flex flex-col items-end">
+                          <PriceTag value={fmtMoney(pricer("mayorista", p))} size="sm" />
+                          <span className="num text-xs text-gris">Min. {fmtMoney(pricer("minorista", p))}</span>
+                        </span>
                       </span>
                     </Link>
                   </li>

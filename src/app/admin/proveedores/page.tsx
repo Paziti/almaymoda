@@ -5,14 +5,35 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { PlusIcon, TruckIcon, WhatsappLogoIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
-import { fmtCoef, parseNumber, uid } from "@/lib/format";
+import { fmtCoef, fmtDoc, parseNumber, uid } from "@/lib/format";
 import { totalStock } from "@/lib/pricing";
 import { whatsappUrl } from "@/lib/share";
-import type { Supplier } from "@/lib/types";
-import { Button, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Textarea, buttonClass } from "@/components/comun/ui";
+import type { DocType, Supplier, TaxCategory } from "@/lib/types";
+import { Button, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Select, Textarea, buttonClass } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
-const blank = (): Supplier => ({ id: uid("s"), name: "", contact: "", phone: "", email: "", coefficient: null, notes: "" });
+const TAX_CATEGORIES: Exclude<TaxCategory, "">[] = ["Responsable Inscripto", "Monotributista", "Exento", "Consumidor Final"];
+const DOC_LENGTH: Record<DocType, string> = { CUIT: "11 números", DNI: "7 u 8 números" };
+
+const withDefaults = (s: Supplier): Supplier => ({
+  legalName: "",
+  address: "",
+  city: "",
+  postalCode: "",
+  taxCategory: "",
+  docType: "CUIT",
+  docNumber: "",
+  ...s,
+});
+
+const blank = (): Supplier => withDefaults({ id: uid("s"), name: "", contact: "", phone: "", email: "", coefficient: null, notes: "" });
+
+function docError(type: DocType, digits: string) {
+  if (!digits) return "";
+  if (type === "CUIT" && digits.length !== 11) return "El CUIT tiene 11 números.";
+  if (type === "DNI" && (digits.length < 7 || digits.length > 8)) return "El DNI tiene 7 u 8 números.";
+  return "";
+}
 
 export default function ProveedoresPage() {
   const suppliers = useDB((s) => s.suppliers);
@@ -23,9 +44,11 @@ export default function ProveedoresPage() {
   const [editing, setEditing] = useState<Supplier | null>(null);
   const [coefText, setCoefText] = useState("");
   const [error, setError] = useState("");
+  const [docErr, setDocErr] = useState("");
 
   const open = (s: Supplier) => {
-    setEditing(s);
+    setEditing(withDefaults(s));
+    setDocErr("");
     setCoefText(s.coefficient ? fmtCoef(s.coefficient) : "");
     setError("");
   };
@@ -33,8 +56,21 @@ export default function ProveedoresPage() {
   const save = () => {
     if (!editing) return;
     if (!editing.name.trim()) return setError("Poné el nombre.");
+    const dErr = docError(editing.docType ?? "CUIT", editing.docNumber ?? "");
+    setDocErr(dErr);
+    if (dErr) return;
     const c = parseNumber(coefText);
-    saveSupplier({ ...editing, name: editing.name.trim(), coefficient: c && c > 0 ? c : null, demo: false });
+    const trim = (v?: string) => (v ?? "").trim();
+    saveSupplier({
+      ...editing,
+      name: editing.name.trim(),
+      legalName: trim(editing.legalName),
+      address: trim(editing.address),
+      city: trim(editing.city),
+      postalCode: trim(editing.postalCode),
+      coefficient: c && c > 0 ? c : null,
+      demo: false,
+    });
     toast.success("Proveedor guardado");
     setEditing(null);
   };
@@ -74,6 +110,11 @@ export default function ProveedoresPage() {
                     <div className="flex items-start justify-between gap-3">
                       <button type="button" onClick={() => open(s)} className="min-w-0 text-left">
                         <h2 className="truncate font-display text-2xl hover:text-acento">{s.name}</h2>
+                        {(s.legalName || s.docNumber) && (
+                          <p className="truncate text-sm text-tinta">
+                            {[s.legalName, s.docNumber && `${s.docType ?? "CUIT"} ${fmtDoc(s.docType ?? "CUIT", s.docNumber)}`].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
                         <p className="text-sm text-gris">{[s.contact, s.phone, s.email].filter(Boolean).join(" · ") || "Sin datos de contacto"}</p>
                       </button>
                       <span className="hang-tag shrink-0 text-[0.8rem]">× {fmtCoef(s.coefficient ?? general)}</span>
@@ -107,6 +148,7 @@ export default function ProveedoresPage() {
         open={!!editing}
         onClose={() => setEditing(null)}
         title={exists ? "Editar proveedor" : "Nuevo proveedor"}
+        wide
         footer={
           <>
             {exists && editing && (
@@ -135,6 +177,59 @@ export default function ProveedoresPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nombre" htmlFor="sp-name" error={error} className="sm:col-span-2">
               <Input id="sp-name" {...f("name")} />
+            </Field>
+            <Field label="Razón social" htmlFor="sp-legal" className="sm:col-span-2">
+              <Input id="sp-legal" placeholder="Como figura en las facturas" {...f("legalName")} />
+            </Field>
+            <Field label="Categoría" htmlFor="sp-tax">
+              <Select id="sp-tax" value={editing.taxCategory ?? ""} onChange={(e) => setEditing((s) => (s ? { ...s, taxCategory: e.target.value as TaxCategory } : s))}>
+                <option value="">Sin indicar</option>
+                {TAX_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label={editing.docType ?? "CUIT"} htmlFor="sp-doc" error={docErr} hint={DOC_LENGTH[editing.docType ?? "CUIT"] + ", sin guiones ni puntos"}>
+              <div className="flex gap-2">
+                <Select
+                  aria-label="Tipo de documento"
+                  className="w-28 shrink-0"
+                  value={editing.docType ?? "CUIT"}
+                  onChange={(e) => {
+                    setDocErr("");
+                    setEditing((s) => (s ? { ...s, docType: e.target.value as DocType } : s));
+                  }}
+                >
+                  <option value="CUIT">CUIT</option>
+                  <option value="DNI">DNI</option>
+                </Select>
+                <Input
+                  id="sp-doc"
+                  inputMode="numeric"
+                  className="num"
+                  maxLength={editing.docType === "DNI" ? 8 : 11}
+                  placeholder={editing.docType === "DNI" ? "12345678" : "20123456789"}
+                  aria-invalid={!!docErr}
+                  aria-describedby={docErr ? "sp-doc-error" : undefined}
+                  value={editing.docNumber ?? ""}
+                  onChange={(e) => {
+                    setDocErr("");
+                    const digits = e.target.value.replace(/\D/g, "");
+                    setEditing((s) => (s ? { ...s, docNumber: digits } : s));
+                  }}
+                />
+              </div>
+            </Field>
+            <Field label="Domicilio" htmlFor="sp-address" className="sm:col-span-2">
+              <Input id="sp-address" placeholder="Calle y número" autoComplete="off" {...f("address")} />
+            </Field>
+            <Field label="Localidad" htmlFor="sp-city">
+              <Input id="sp-city" {...f("city")} />
+            </Field>
+            <Field label="Código postal" htmlFor="sp-cp">
+              <Input id="sp-cp" placeholder="1000 o C1000AAA" maxLength={8} {...f("postalCode")} />
             </Field>
             <Field label="Contacto" htmlFor="sp-contact">
               <Input id="sp-contact" placeholder="Con quién hablan" {...f("contact")} />

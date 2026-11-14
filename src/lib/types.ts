@@ -9,7 +9,10 @@ export interface Variant {
 
 export interface Product {
   id: ID;
+  /** Código corto con el que trabajan (el de la lista del proveedor). */
   code: string;
+  /** Código de barras que lee la pistola. Opcional: hay artículos que no tienen. Sólo dígitos. */
+  barcode?: string;
   name: string;
   description: string;
   category: string;
@@ -20,6 +23,8 @@ export interface Product {
   coefficient: number | null;
   /** Precio fijo que ignora el cálculo costo x coeficiente. */
   priceOverride: number | null;
+  /** Precio minorista fijo. null o ausente = mayorista + recargo minorista de Ajustes. */
+  retailPrice?: number | null;
   images: string[];
   variants: Variant[];
   active: boolean;
@@ -31,9 +36,23 @@ export interface Product {
   updatedAt: number;
 }
 
+/** Condición frente al IVA. */
+export type TaxCategory = "" | "Responsable Inscripto" | "Monotributista" | "Exento" | "Consumidor Final";
+
+export type DocType = "CUIT" | "DNI";
+
 export interface Supplier {
   id: ID;
   name: string;
+  /** Datos fiscales. Opcionales porque los proveedores guardados antes no los tienen. */
+  legalName?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  taxCategory?: TaxCategory;
+  docType?: DocType;
+  /** Sólo dígitos, sin guiones. */
+  docNumber?: string;
   contact: string;
   phone: string;
   email: string;
@@ -52,9 +71,14 @@ export interface Client {
   address: string;
   cuit: string;
   notes: string;
+  /** Compra a precio minorista: sus remitos arrancan con esa lista. */
+  retail?: boolean;
   createdAt: number;
   demo?: boolean;
 }
+
+/** Mayorista es el precio de siempre; minorista se usa en el local o con clientes particulares. */
+export type PriceList = "mayorista" | "minorista";
 
 export interface LineItem {
   productId: ID | null;
@@ -93,6 +117,8 @@ export interface Remito {
   items: LineItem[];
   notes: string;
   discount: number;
+  /** Ausente en remitos viejos = mayorista. */
+  priceList?: PriceList;
   status: RemitoStatus;
   stockDiscounted: boolean;
   orderId: ID | null;
@@ -131,6 +157,8 @@ export interface Settings {
   instagram: string;
   coefficient: number;
   rounding: Rounding;
+  /** Porcentaje que se suma al mayorista para el precio minorista. */
+  retailMarkup: number;
   minPurchase: number;
   pricesRequireLogin: boolean;
   lowStock: number;

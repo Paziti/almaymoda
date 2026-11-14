@@ -8,8 +8,9 @@ import { CameraIcon, ImageIcon, TrashIcon, StarIcon, PlusIcon, XIcon, CircleNotc
 import { useDB } from "@/lib/store";
 import type { Product, Variant } from "@/lib/types";
 import { fmtCoef, fmtMoney, now, parseNumber, uid } from "@/lib/format";
-import { coefSourceLabel, effectiveCoefficient, roundPrice } from "@/lib/pricing";
+import { coefSourceLabel, effectiveCoefficient, retailFromWholesale, roundPrice } from "@/lib/pricing";
 import { processPhoto, type PhotoStage } from "@/lib/image";
+import { cleanBarcode, looksLikeBarcode } from "@/lib/barcode";
 import { Button, ConfirmButton, Field, Input, Panel, PriceTag, Segmented, Select, Switch, Textarea } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "./shell";
 
@@ -42,7 +43,7 @@ function blank(defaultCategory: string): Product {
   };
 }
 
-export function ProductForm({ initial }: { initial?: Product }) {
+export function ProductForm({ initial, initialBarcode }: { initial?: Product; initialBarcode?: string }) {
   const router = useRouter();
   const settings = useDB((s) => s.settings);
   const suppliers = useDB((s) => s.suppliers);
@@ -52,10 +53,11 @@ export function ProductForm({ initial }: { initial?: Product }) {
   const updateSettings = useDB((s) => s.updateSettings);
 
   const isNew = !initial;
-  const [p, setP] = useState<Product>(() => initial ?? blank(settings.categories[0] ?? "Sin categoría"));
+  const [p, setP] = useState<Product>(() => initial ?? { ...blank(settings.categories[0] ?? "Sin categoría"), barcode: initialBarcode ? cleanBarcode(initialBarcode) : "" });
   const [costText, setCostText] = useState(initial ? String(initial.cost).replace(".", ",") : "");
   const [coefText, setCoefText] = useState(initial?.coefficient ? String(initial.coefficient).replace(".", ",") : "");
   const [fixedText, setFixedText] = useState(initial?.priceOverride ? String(initial.priceOverride) : "");
+  const [retailText, setRetailText] = useState(initial?.retailPrice ? String(initial.retailPrice) : "");
   const [priceMode, setPriceMode] = useState<"auto" | "coef" | "fijo">(initial?.priceOverride ? "fijo" : initial?.coefficient ? "coef" : "auto");
 
   const initSizes = initial ? [...new Set(initial.variants.map((v) => v.size))] : ["Único"];
@@ -78,6 +80,9 @@ export function ProductForm({ initial }: { initial?: Product }) {
   const coef = priceMode === "coef" && ownCoef ? ownCoef : inherited.value;
   const computed = roundPrice(cost * coef, settings.rounding);
   const finalPrice = priceMode === "fijo" ? parseNumber(fixedText) ?? 0 : computed;
+  const ownRetail = parseNumber(retailText);
+  const autoRetail = retailFromWholesale(finalPrice, settings);
+  const finalRetail = ownRetail && ownRetail > 0 ? ownRetail : autoRetail;
 
   const units = Object.entries(stock)
     .filter(([k]) => colors.includes(k.split("|")[0]) && sizes.includes(k.split("|")[1]))
@@ -118,6 +123,12 @@ export function ProductForm({ initial }: { initial?: Product }) {
     if (!p.name.trim()) errs.name = "Poné un nombre.";
     if (!p.code.trim()) errs.code = "Poné un código (o tocá Generar).";
     else if (products.some((x) => x.id !== p.id && x.code.trim().toLowerCase() === p.code.trim().toLowerCase())) errs.code = "Ya hay otro artículo con este código.";
+    const barcode = cleanBarcode(p.barcode ?? "");
+    if (barcode && !looksLikeBarcode(barcode)) errs.barcode = "Un código de barras tiene entre 8 y 14 números.";
+    else if (barcode) {
+      const other = products.find((x) => x.id !== p.id && x.barcode === barcode);
+      if (other) errs.barcode = `Ya lo tiene ${other.name} (${other.code}).`;
+    }
     if (priceMode === "fijo" && !(parseNumber(fixedText) ?? 0)) errs.price = "Poné el precio fijo.";
     if (priceMode !== "fijo" && cost <= 0) errs.cost = "Poné el costo para calcular el precio.";
     setErrors(errs);
@@ -144,9 +155,11 @@ export function ProductForm({ initial }: { initial?: Product }) {
       ...p,
       name: p.name.trim(),
       code: p.code.trim(),
+      barcode: cleanBarcode(p.barcode ?? "") || undefined,
       cost,
       coefficient: priceMode === "coef" && ownCoef ? ownCoef : null,
       priceOverride: priceMode === "fijo" ? parseNumber(fixedText) : null,
+      retailPrice: ownRetail && ownRetail > 0 ? ownRetail : null,
       variants,
       demo: false,
     };
@@ -230,6 +243,24 @@ export function ProductForm({ initial }: { initial?: Product }) {
                     Generar
                   </Button>
                 </div>
+              </Field>
+              <Field label="Código de barras" htmlFor="f-barcode" error={errors.barcode} hint="Opcional. Tocá acá y pistoleá el artículo.">
+                <Input
+                  id="f-barcode"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  className="num"
+                  placeholder="Ej: 4790030293164"
+                  value={p.barcode ?? ""}
+                  onChange={(e) => set("barcode", cleanBarcode(e.target.value))}
+                  // La pistola termina con Enter: pasar al código corto, que hay que escribir a mano.
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (!p.code) document.getElementById("f-code")?.focus();
+                    }
+                  }}
+                />
               </Field>
               <Field label="Categoría" htmlFor="f-cat">
                 {newCategory === null ? (
@@ -423,6 +454,19 @@ export function ProductForm({ initial }: { initial?: Product }) {
                 <PriceTag value={fmtMoney(finalPrice)} tone="accent" size="lg" />
               </div>
               {cost > 0 && finalPrice > 0 && <p className="num text-sm text-gris">Ganancia por unidad {fmtMoney(finalPrice - cost)}</p>}
+            </div>
+            <div className="flex flex-col gap-3 rounded-xl border border-linea p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-semibold">Precio minorista</span>
+                <span className="num font-semibold">{fmtMoney(finalRetail)}</span>
+              </div>
+              <Field
+                label="Minorista fijo (opcional)"
+                htmlFor="f-retail"
+                hint={`Vacío = mayorista + ${settings.retailMarkup ?? 0}% (${fmtMoney(autoRetail)}). Se usa en el local y con clientes minoristas; no se ve en la tienda.`}
+              >
+                <Input id="f-retail" inputMode="decimal" className="num" placeholder={String(autoRetail)} value={retailText} onChange={(e) => setRetailText(e.target.value)} />
+              </Field>
             </div>
           </Panel>
 

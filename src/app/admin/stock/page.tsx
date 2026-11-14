@@ -6,7 +6,8 @@ import { toast } from "sonner";
 import { MagnifyingGlassIcon, PackageIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
 import { variantLabel } from "@/lib/labels";
-import { fmtDateTime, normalizeText } from "@/lib/format";
+import { fmtDateTime } from "@/lib/format";
+import { newProductHref, searchProducts } from "@/lib/barcode";
 import { totalStock } from "@/lib/pricing";
 import type { Product } from "@/lib/types";
 import { Button, EmptyState, Input, Panel, Segmented } from "@/components/comun/ui";
@@ -25,13 +26,7 @@ export default function StockPage() {
 
   const selected = products.find((p) => p.id === selectedId) ?? null;
 
-  const results = useMemo(() => {
-    const nq = normalizeText(q);
-    if (!nq) return [];
-    const exact = products.filter((p) => normalizeText(p.code) === nq);
-    const rest = products.filter((p) => !exact.includes(p) && normalizeText(`${p.code} ${p.name}`).includes(nq));
-    return [...exact, ...rest].slice(0, 8);
-  }, [q, products]);
+  const results = useMemo(() => searchProducts(products, q), [q, products]);
 
   const pick = (p: Product) => {
     setSelectedId(p.id);
@@ -67,7 +62,7 @@ export default function StockPage() {
 
   return (
     <div>
-      <PageHeader title="Ingreso de stock" description="Buscá el artículo por código o nombre, tipeá las cantidades por color y medida y guardá. Pensado para hacerlo parado en el depósito." />
+      <PageHeader title="Ingreso de stock" description="Pistoleá el código de barras o buscá el artículo por código o nombre, tipeá las cantidades por color y medida y guardá. Pensado para hacerlo parado en el depósito." />
       <div className={`${pagePad} grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]`}>
         <div className="flex min-w-0 flex-col gap-4">
           <div className="relative">
@@ -77,7 +72,7 @@ export default function StockPage() {
               type="search"
               autoFocus
               aria-label="Buscar artículo"
-              placeholder="Código o nombre"
+              placeholder="Pistoleá o escribí código o nombre"
               className="min-h-13 pl-11 text-lg"
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -106,7 +101,7 @@ export default function StockPage() {
             {q && results.length === 0 && (
               <p className="mt-2 text-sm text-gris">
                 No hay artículos con “{q}”.{" "}
-                <Link href="/admin/productos/nuevo" className="font-semibold text-acento underline">
+                <Link href={newProductHref(q)} className="font-semibold text-acento underline">
                   Cargarlo como nuevo
                 </Link>
               </p>

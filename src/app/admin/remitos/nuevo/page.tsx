@@ -6,18 +6,20 @@ import { toast } from "sonner";
 import { MagnifyingGlassIcon, TrashIcon, PlusIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
 import { variantLabel } from "@/lib/labels";
-import { fmtMoney, normalizeText, parseNumber, uid } from "@/lib/format";
+import { fmtMoney, parseNumber, uid } from "@/lib/format";
+import { findExact, looksLikeBarcode, searchProducts } from "@/lib/barcode";
 import { totalStock } from "@/lib/pricing";
-import { usePricer } from "@/lib/hooks";
+import { useListPricer } from "@/lib/hooks";
 import { remitoTotals } from "@/lib/remito-pdf";
-import type { Client, LineItem, Product } from "@/lib/types";
-import { Button, Field, IconButton, Input, Panel, Select, Spinner, Stepper, Switch, Textarea } from "@/components/comun/ui";
+import type { Client, LineItem, PriceList, Product } from "@/lib/types";
+import { Button, Field, IconButton, Input, Panel, Segmented, Select, Spinner, Stepper, Switch, Textarea } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 type Line = LineItem & { key: string };
 
 const emptyCustomer = { name: "", phone: "", email: "", address: "", cuit: "" };
+const WALK_IN = "Consumidor final";
 
 function Builder() {
   const router = useRouter();
@@ -29,7 +31,7 @@ function Builder() {
   const order = useDB((s) => s.orders.find((o) => o.id === orderId));
   const createRemito = useDB((s) => s.createRemito);
   const saveClient = useDB((s) => s.saveClient);
-  const pricer = usePricer();
+  const listPricer = useListPricer();
 
   const initialClientId = order?.clientId ?? presetClientId ?? "";
   const orderClient = initialClientId ? clients.find((c) => c.id === initialClientId) : undefined;
@@ -41,6 +43,8 @@ function Builder() {
         ? { ...emptyCustomer, name: order.customer.name, phone: order.customer.phone, address: order.customer.city }
         : emptyCustomer,
   );
+  const [priceList, setPriceList] = useState<PriceList>(params.get("lista") === "minorista" || orderClient?.retail ? "minorista" : "mayorista");
+  const pricer = (p: Product) => listPricer(priceList, p);
   const [saveAsClient, setSaveAsClient] = useState(true);
   const [lines, setLines] = useState<Line[]>(() => (order?.items ?? []).map((i) => ({ ...i, key: uid("l") })));
   const [q, setQ] = useState("");
@@ -52,16 +56,48 @@ function Builder() {
   const [free, setFree] = useState({ name: "", qty: "1", price: "" });
   const [error, setError] = useState("");
 
-  const results = useMemo(() => {
-    const nq = normalizeText(q);
-    if (!nq) return [];
-    return products.filter((p) => normalizeText(`${p.code} ${p.name}`).includes(nq)).slice(0, 8);
-  }, [q, products]);
+  const results = useMemo(() => searchProducts(products, q), [q, products]);
+
+  /** Cambia la lista y recalcula los artículos cargados. Los renglones libres no se tocan. */
+  const changeList = (list: PriceList) => {
+    if (list === priceList) return;
+    setPriceList(list);
+    setLines((ls) =>
+      ls.map((l) => {
+        const p = l.productId ? products.find((x) => x.id === l.productId) : undefined;
+        return p ? { ...l, unitPrice: listPricer(list, p) } : l;
+      }),
+    );
+  };
 
   const pickClient = (id: string) => {
     setClientId(id);
     const c = clients.find((x) => x.id === id);
     setCustomer(c ? { name: c.name, phone: c.phone, email: c.email, address: [c.address, c.city].filter(Boolean).join(", "), cuit: c.cuit } : emptyCustomer);
+    if (c) changeList(c.retail ? "minorista" : "mayorista");
+  };
+
+  /** Suma una unidad. Lo usa la pistola con artículos de un solo color y medida: cada lectura es +1. */
+  const addOne = (p: Product) => {
+    const v = p.variants[0];
+    setLines((ls) => {
+      const i = ls.findIndex((l) => l.variantId === v.id);
+      if (i >= 0) return ls.map((l, k) => (k === i ? { ...l, qty: l.qty + 1 } : l));
+      return [...ls, { key: uid("l"), productId: p.id, variantId: v.id, code: p.code, name: p.name, size: v.size, color: v.color, qty: 1, unitPrice: pricer(p) }];
+    });
+    toast.success(`+1 ${p.name}`, { id: "scan", duration: 1500 });
+  };
+
+  /** Enter en el buscador (la pistola lo manda sola): agrega el artículo exacto o abre sus colores. */
+  const onSearchEnter = () => {
+    const target = findExact(products, q) ?? (results.length === 1 ? results[0] : undefined);
+    if (!target) return;
+    setQ("");
+    if (target.variants.length === 1) addOne(target);
+    else {
+      setPicking(target);
+      setPickQty({});
+    }
   };
 
   const addPicked = () => {
@@ -90,22 +126,25 @@ function Builder() {
   const { subtotal, units, discountAmount, total } = remitoTotals({ items: lines, discount });
 
   const submit = () => {
-    if (!customer.name.trim()) return setError("Poné el nombre del cliente.");
+    // En el local muchas veces no se pide el nombre.
+    const name = customer.name.trim() || (priceList === "minorista" ? WALK_IN : "");
+    if (!name) return setError("Poné el nombre del cliente.");
     if (!lines.length) return setError("Agregá al menos un artículo.");
     setError("");
     let cid: string | null = clientId || null;
-    if (!cid && saveAsClient) {
-      const c: Client = { id: uid("c"), name: customer.name.trim(), business: "", phone: customer.phone, email: customer.email, city: "", address: customer.address, cuit: customer.cuit, notes: "", createdAt: Date.now() };
+    if (!cid && saveAsClient && name !== WALK_IN) {
+      const c: Client = { id: uid("c"), name, retail: priceList === "minorista" || undefined, business: "", phone: customer.phone, email: customer.email, city: "", address: customer.address, cuit: customer.cuit, notes: "", createdAt: Date.now() };
       saveClient(c);
       cid = c.id;
     }
     const remito = createRemito(
       {
         clientId: cid,
-        customer: { ...customer, name: customer.name.trim() },
+        customer: { ...customer, name },
         items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, code: l.code, name: l.name, size: l.size, color: l.color, qty: l.qty, unitPrice: l.unitPrice })),
         notes,
         discount,
+        priceList,
         orderId: order?.id ?? null,
       },
       discountStock,
@@ -121,6 +160,23 @@ function Builder() {
       <PageHeader title="Nuevo remito" description={order ? `Desde el pedido web N° ${order.number}` : undefined} back={{ href: "/admin/remitos", label: "Remitos" }} />
       <div className={`${pagePad} grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]`}>
         <div className="flex min-w-0 flex-col gap-6">
+          <Panel className="flex flex-col gap-3 p-5">
+            <Segmented
+              label="Precio"
+              value={priceList}
+              onChange={changeList}
+              options={[
+                { value: "mayorista", label: "Mayorista" },
+                { value: "minorista", label: "Minorista" },
+              ]}
+            />
+            <p className="text-sm text-gris">
+              {priceList === "minorista"
+                ? "Para ventas en el local o a particulares. Si no ponés nombre, sale como consumidor final."
+                : "El precio de siempre, el que se ve en la tienda."}
+            </p>
+          </Panel>
+
           <Panel className="flex flex-col gap-4 p-5">
             <h2 className="font-semibold">Cliente</h2>
             <Field label="Cliente guardado" htmlFor="r-client">
@@ -136,7 +192,7 @@ function Builder() {
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Nombre" htmlFor="r-name">
-                <Input id="r-name" placeholder="Nombre o razón social" value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} />
+                <Input id="r-name" placeholder={priceList === "minorista" ? WALK_IN : "Nombre o razón social"} value={customer.name} onChange={(e) => setCustomer({ ...customer, name: e.target.value })} />
               </Field>
               <Field label="Teléfono / WhatsApp" htmlFor="r-phone">
                 <Input id="r-phone" type="tel" inputMode="tel" value={customer.phone} onChange={(e) => setCustomer({ ...customer, phone: e.target.value })} />
@@ -158,7 +214,20 @@ function Builder() {
             <h2 className="font-semibold">Artículos</h2>
             <div className="relative">
               <MagnifyingGlassIcon size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gris" />
-              <Input type="search" aria-label="Buscar artículo" placeholder="Buscar por código o nombre" className="pl-11" value={q} onChange={(e) => setQ(e.target.value)} />
+              <Input
+                type="search"
+                aria-label="Buscar artículo"
+                placeholder="Pistoleá o buscá por código o nombre"
+                className="pl-11"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onSearchEnter();
+                  }
+                }}
+              />
               {results.length > 0 && !picking && (
                 <ul className="absolute inset-x-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-linea bg-papel shadow-xl">
                   {results.map((p) => (
@@ -180,6 +249,12 @@ function Builder() {
                 </ul>
               )}
             </div>
+
+            {q && results.length === 0 && !picking && (
+              <p className="text-sm text-gris">
+                {looksLikeBarcode(q) ? "Ese código de barras no está cargado en ningún artículo." : `No hay artículos con “${q}”.`} Podés cargarlo en Artículos o agregarlo abajo como renglón libre.
+              </p>
+            )}
 
             {picking && (
               <div className="flex flex-col gap-3 rounded-xl border border-acento bg-acento-suave/40 p-4">

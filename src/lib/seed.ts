@@ -19,6 +19,7 @@ export const defaultSettings: Settings = {
   instagram: "https://www.instagram.com/mayorista_almaymoda/",
   coefficient: 1.8,
   rounding: 100,
+  retailMarkup: 30,
   minPurchase: 0,
   pricesRequireLogin: false,
   lowStock: 6,

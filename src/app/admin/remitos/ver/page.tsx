@@ -91,7 +91,12 @@ export default function RemitoPage() {
         title={`Remito ${number}`}
         description={`${remito.customer.name} · ${fmtDate(remito.createdAt)}`}
         back={{ href: "/admin/remitos", label: "Remitos" }}
-        actions={<Badge tone={remitoStatus[remito.status].tone}>{remitoStatus[remito.status].label}</Badge>}
+        actions={
+          <span className="flex gap-2">
+            {remito.priceList === "minorista" && <Badge>Precio minorista</Badge>}
+            <Badge tone={remitoStatus[remito.status].tone}>{remitoStatus[remito.status].label}</Badge>
+          </span>
+        }
       />
       <div className={`${pagePad} grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]`}>
         <div className="flex min-w-0 flex-col gap-4">

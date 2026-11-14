@@ -7,8 +7,11 @@ import { Spinner } from "@/components/comun/ui";
 
 function Nuevo() {
   // "Guardar y cargar otro" cambia ?r= para arrancar un formulario limpio.
-  const r = useSearchParams().get("r") ?? "0";
-  return <ProductForm key={r} />;
+  const params = useSearchParams();
+  const r = params.get("r") ?? "0";
+  // Viene de pistolear un código que no estaba cargado.
+  const barcode = params.get("barras") ?? undefined;
+  return <ProductForm key={r} initialBarcode={barcode} />;
 }
 
 export default function Page() {

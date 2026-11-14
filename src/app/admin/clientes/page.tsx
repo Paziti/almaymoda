@@ -8,7 +8,7 @@ import { useDB } from "@/lib/store";
 import { normalizeText, uid } from "@/lib/format";
 import { whatsappUrl } from "@/lib/share";
 import type { Client } from "@/lib/types";
-import { Button, ButtonLink, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Spinner, Textarea, buttonClass } from "@/components/comun/ui";
+import { Button, ButtonLink, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Spinner, Switch, Textarea, buttonClass } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 const blank = (): Client => ({ id: uid("c"), name: "", business: "", phone: "", email: "", city: "", address: "", cuit: "", notes: "", createdAt: Date.now() });
@@ -80,7 +80,10 @@ function Clientes() {
                 return (
                   <li key={c.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
                     <button type="button" onClick={() => setEditing(c)} className="min-w-0 flex-1 text-left">
-                      <span className="block truncate font-semibold hover:text-acento">{c.name}</span>
+                      <span className="flex items-center gap-2">
+                        <span className="truncate font-semibold hover:text-acento">{c.name}</span>
+                        {c.retail && <span className="shrink-0 rounded-md bg-piedra px-1.5 py-0.5 text-xs font-semibold">Minorista</span>}
+                      </span>
                       <span className="text-sm text-gris">
                         {[c.business, c.city, c.phone].filter(Boolean).join(" · ") || "Sin datos de contacto"} · {nOrders} pedidos · {nRemitos} remitos
                       </span>
@@ -154,6 +157,9 @@ function Clientes() {
             <Field label="Dirección" htmlFor="cl-addr">
               <Input id="cl-addr" {...f("address")} />
             </Field>
+            <div className="sm:col-span-2">
+              <Switch checked={!!editing.retail} onChange={(v) => setEditing((c) => (c ? { ...c, retail: v } : c))} label="Compra a precio minorista" description="Sus remitos arrancan con el precio minorista" />
+            </div>
             <Field label="Notas" htmlFor="cl-notes" className="sm:col-span-2">
               <Textarea id="cl-notes" rows={2} {...f("notes")} />
             </Field>

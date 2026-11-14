@@ -21,7 +21,14 @@ export const fmtNumber = (n: number, digits = 0) =>
 export const fmtCoef = (n: number) =>
   new Intl.NumberFormat("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 3 }).format(n);
 
-export const fmtDate = (t: number) =>
+/** CUIT como 20-12345678-9 y DNI como 12.345.678. Si no tiene el largo esperado, lo deja como está. */
+export function fmtDoc(type: "CUIT" | "DNI", digits: string) {
+  if (type === "CUIT" && digits.length === 11) return `${digits.slice(0, 2)}-${digits.slice(2, 10)}-${digits.slice(10)}`;
+  if (type === "DNI" && digits.length >= 7) return Number(digits).toLocaleString("es-AR");
+  return digits;
+}
+
+export const fmtDate =(t: number) =>
   new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(t);
 
 export const fmtDateTime = (t: number) =>

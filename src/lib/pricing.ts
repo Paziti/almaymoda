@@ -1,4 +1,4 @@
-import type { Product, Rounding, Settings, Supplier } from "./types";
+import type { PriceList, Product, Rounding, Settings, Supplier } from "./types";
 
 export function roundPrice(value: number, rounding: Rounding) {
   if (!Number.isFinite(value) || value <= 0) return 0;
@@ -27,6 +27,21 @@ export function salePrice(
   if (p.priceOverride && p.priceOverride > 0) return p.priceOverride;
   const { value } = effectiveCoefficient(p, suppliers, settings);
   return roundPrice(p.cost * value, settings.rounding);
+}
+
+type Priced = Pick<Product, "cost" | "coefficient" | "supplierId" | "priceOverride" | "retailPrice">;
+
+/** Precio minorista: el fijo del artículo, o el mayorista más el recargo de Ajustes. */
+export function retailPrice(p: Priced, suppliers: Supplier[], settings: Settings) {
+  if (p.retailPrice && p.retailPrice > 0) return p.retailPrice;
+  return retailFromWholesale(salePrice(p, suppliers, settings), settings);
+}
+
+export const retailFromWholesale = (wholesale: number, settings: Pick<Settings, "retailMarkup" | "rounding">) =>
+  roundPrice(wholesale * (1 + (settings.retailMarkup ?? 0) / 100), settings.rounding);
+
+export function priceFor(list: PriceList, p: Priced, suppliers: Supplier[], settings: Settings) {
+  return list === "minorista" ? retailPrice(p, suppliers, settings) : salePrice(p, suppliers, settings);
 }
 
 export const totalStock = (p: Pick<Product, "variants">) =>

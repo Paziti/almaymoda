@@ -52,6 +52,7 @@ export async function buildRemitoPdf(r: Remito, s: Settings): Promise<Blob> {
   doc.setFontSize(9);
   doc.setTextColor(...GREY);
   doc.text(`Fecha: ${fmtDate(r.createdAt)}`, bx + 5, 35);
+  if (r.priceList === "minorista") doc.text("Precio minorista", bx + boxW - 5, 20, { align: "right" });
   if (r.status === "anulado") {
     doc.setTextColor(...ACCENT);
     doc.setFont("helvetica", "bold");
