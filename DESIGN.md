@@ -16,7 +16,10 @@
 - **Piedra** `#E5DCD2`: el color exacto del círculo del logo. Se usa en el logo y como base de las superficies (`--piedra`, `--lienzo`).
 - **Tinta** `#241F1B`: el negro cálido de la firma "Alma y Moda". Texto, botones principales y la franja oscura.
 - **Blanco**: el "AM" y "MAYORISTA" del logo; fondo de tarjetas.
-- **Suela** `#8A5434`: el único acento. No está en el logo; viene del material de lo que venden (cuero de carteras, bolsos y billeteras). Se usa sólo en la acción principal, el precio destacado y "Agregar al pedido".
+- **Paleta rosa y terracota** (nov. 2026, elegida por el frente): lienzo `#FDF8F5`, rosa empolvado `#F4DFD8` para secciones y estados activos (`--piedra`), tinta `#2A1F1D`.
+- **Terracota** `#A84E36`: el único acento. Se usa sólo en la acción principal, el precio destacado y "Agregar al pedido".
+- **Claro por defecto:** el sitio no sigue el modo oscuro del dispositivo; el oscuro sólo se activa con el botón de tema.
+- Bodoni sólo en títulos grandes; nombres de artículo y pestañas van en Figtree (los trazos finos de Bodoni no se leen en tamaños chicos).
 - Los colores semánticos (ok / alerta / peligro) y el verde de WhatsApp van aparte del acento.
 - Modo oscuro con selector, probado en los dos temas.
 - **Franja oscura** (`.banda`): la tinta invertida como fondo, una vez por pantalla ("Recién llegados", resumen del pedido y pie). Es el momento de contraste; no es un color nuevo.

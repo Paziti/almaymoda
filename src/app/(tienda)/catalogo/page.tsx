@@ -70,7 +70,7 @@ function Catalogo() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-8 pt-8 md:pt-12">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-tinta pb-4">
-        <h1 className="font-display text-[clamp(3.2rem,11vw,7.5rem)] leading-[0.88] tracking-[-0.03em]">{cat || "Catálogo"}</h1>
+        <h1 className="font-display text-[clamp(2.25rem,7vw,4rem)] leading-[0.95] tracking-[-0.02em]">{cat || "Catálogo"}</h1>
         <p className="num pb-2 text-gris">{list.length === 1 ? "1 artículo" : `${list.length} artículos`}</p>
       </div>
 
@@ -87,8 +87,8 @@ function Catalogo() {
               aria-pressed={cat === c}
               onClick={() => setCat(c)}
               className={clsx(
-                "min-h-11 shrink-0 border-b-2 font-display text-2xl leading-none transition-colors",
-                cat === c ? "border-tinta italic text-tinta" : "border-transparent text-gris hover:text-tinta",
+                "min-h-11 shrink-0 border-b-2 font-semibold transition-colors",
+                cat === c ? "border-acento text-tinta" : "border-transparent text-gris hover:text-tinta",
               )}
             >
               {c || "Todas"}
