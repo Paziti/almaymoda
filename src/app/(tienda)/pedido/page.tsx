@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { TrashIcon, WhatsappLogoIcon, CheckCircleIcon } from "@phosphor-icons/react";
-import { useCarrito, useCatalogo, useClienta, useEnviarPedido, useLocal, usePrecio, useVerPrecios, fmtMoney, variantLabel, whatsappUrl, type LineItem, type Order } from "@/lib/tienda";
+import { useCarrito, useCatalogo, useClienta, usePedir, useLocal, usePrecio, useVerPrecios, fmtMoney, variantLabel, whatsappUrl, type LineItem, type Order } from "@/lib/tienda";
 import { Button, ButtonLink, EmptyState, Field, IconButton, Input, Panel, Stepper, Textarea } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 
@@ -12,13 +12,15 @@ export default function PedidoPage() {
   const { clienta: me } = useClienta();
   const products = useCatalogo();
   const settings = useLocal();
-  const enviarPedido = useEnviarPedido();
+  const pedir = usePedir();
   const pricer = usePrecio();
   const showPrice = useVerPrecios();
 
   const [form, setForm] = useState({ name: me?.name ?? "", phone: me?.phone ?? "", business: me?.business ?? "", city: me?.city ?? "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [sent, setSent] = useState<{ order: Order; url: string | null } | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState("");
 
   const lines = cart
     .map((l) => {
@@ -62,8 +64,9 @@ export default function PedidoPage() {
     );
   }
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (sending) return;
     const errs: Record<string, string> = {};
     if (!form.name.trim()) errs.name = "Escribí tu nombre.";
     if (form.phone.replace(/\D/g, "").length < 8) errs.phone = "Escribí un teléfono con código de área.";
@@ -74,7 +77,20 @@ export default function PedidoPage() {
     }
 
     const items: LineItem[] = lines.map((l) => ({ productId: l.p.id, variantId: l.v.id, code: l.p.code, name: l.p.name, size: l.v.size, color: l.v.color, qty: l.qty, unitPrice: l.price }));
-    const order = enviarPedido({ customer: { name: form.name, phone: form.phone, business: form.business, city: form.city }, items, notes: form.notes });
+    // La pestaña de WhatsApp se abre ya (con el toque), porque después de esperar a la base el navegador la bloquearía.
+    const win = settings.whatsapp ? window.open("", "_blank") : null;
+    setSending(true);
+    setSendError("");
+    let order: Order;
+    try {
+      order = await pedir({ customer: { name: form.name, phone: form.phone, business: form.business, city: form.city }, items, notes: form.notes });
+    } catch (err) {
+      win?.close();
+      setSendError(err instanceof Error && err.message ? err.message : "No se pudo enviar el pedido. Probá de nuevo.");
+      setSending(false);
+      return;
+    }
+    setSending(false);
 
     const text = [
       `Hola! Soy ${form.name}${form.business ? ` (${form.business})` : ""}${form.city ? `, de ${form.city}` : ""}. Quiero hacer este pedido (N° ${order.number}):`,
@@ -86,7 +102,12 @@ export default function PedidoPage() {
     ].join("\n");
 
     const url = settings.whatsapp ? whatsappUrl(settings.whatsapp, text) : null;
-    if (url) window.open(url, "_blank", "noopener");
+    if (url && win) {
+      win.opener = null;
+      win.location.href = url;
+    } else if (url) {
+      window.open(url, "_blank", "noopener");
+    }
     clearCart();
     setSent({ order, url });
   };
@@ -170,8 +191,13 @@ export default function PedidoPage() {
             <Field label="Nota para el local" htmlFor="o-notes" hint="Opcional">
               <Textarea id="o-notes" rows={2} placeholder="Ej: envío por transporte, pago por transferencia…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             </Field>
-            <Button type="submit" size="lg" variant="whatsapp" className="w-full">
-              <WhatsappLogoIcon size={22} /> Enviar pedido por WhatsApp
+            {sendError && (
+              <p role="alert" className="text-sm font-semibold text-peligro">
+                {sendError}
+              </p>
+            )}
+            <Button type="submit" size="lg" variant="whatsapp" className="w-full" disabled={sending}>
+              <WhatsappLogoIcon size={22} /> {sending ? "Enviando…" : "Enviar pedido por WhatsApp"}
             </Button>
             {!settings.whatsapp && <p className="text-sm text-gris">El local aún no cargó su WhatsApp: el pedido igual queda registrado en el panel.</p>}
           </form>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import { useCatalogo, useLocal, useHayEjemplos, usePrecio, totalStock, type Product } from "@/lib/tienda";
+import { useCatalogo, useLocal, useOfertas, usePrecioAntes, type Product } from "@/lib/tienda";
 import { EmptyState } from "@/components/comun/ui";
 import { ProductCard } from "@/components/tienda/product-card";
 import { Portada } from "@/components/tienda/portada";
@@ -12,7 +12,7 @@ import { CategoriasHover } from "@/components/tienda/categorias-hover";
 const MARCAS = ["Trendy", "Discovery", "Oreiro Love", "Head", "Wilson", "Unicross", "Amayra", "Chimola", "Influencer", "Basilea"];
 
 /** Grilla de tarjetas que entran escalonadas una sola vez al llegar con el scroll. */
-function Grilla({ items, antes }: { items: Product[]; antes?: (p: Product) => number }) {
+function Grilla({ items, antes }: { items: Product[]; antes?: (p: Product) => number | undefined }) {
   const reduce = useReducedMotion();
   return (
     <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
@@ -34,13 +34,9 @@ function Grilla({ items, antes }: { items: Product[]; antes?: (p: Product) => nu
 export default function Home() {
   const visible = useCatalogo();
   const settings = useLocal();
-  const pricer = usePrecio();
-  const hayEjemplos = useHayEjemplos();
-
-  // ponytail: ofertas de muestra mientras haya artículos de ejemplo (los destacados, con un 20% de descuento).
-  // Cuando lib/tienda ofrezca ofertas reales (se activan desde el panel), reemplazar estas dos líneas por eso.
-  const ofertas = hayEjemplos ? visible.filter((p) => p.featured && totalStock(p) > 0).slice(0, 4) : [];
-  const antes = (p: Product) => Math.round(pricer(p) / 0.8 / 100) * 100;
+  // Ofertas reales: las prenden los dueños desde el panel ("En oferta" en la ficha del artículo).
+  const ofertas = useOfertas().slice(0, 4);
+  const antes = usePrecioAntes();
 
   const latest = [...visible].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8);
   const categories = settings.categories

@@ -109,7 +109,8 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
       </header>
       </div>
 
-      <main id="contenido" className="flex-1">
+      {/* Mientras carga el catálogo, el main ocupa la pantalla para que el pie no aparezca arriba de todo. */}
+      <main id="contenido" className={clsx("flex-1", !hydrated && "min-h-dvh")}>
         {hydrated ? children : <Spinner label="Cargando catálogo" />}
       </main>
 
