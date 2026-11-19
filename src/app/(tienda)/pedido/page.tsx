@@ -94,7 +94,7 @@ export default function PedidoPage() {
   return (
     <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1.3fr_1fr]">
       <section aria-labelledby="t-items" className="flex flex-col gap-4">
-        <h1 id="t-items" className="border-b border-tinta pb-4 font-display text-[clamp(3rem,9vw,6rem)] leading-[0.9] tracking-[-0.02em]">
+        <h1 id="t-items" className="border-b border-tinta pb-4 font-display text-[clamp(2.25rem,7vw,4rem)] leading-[0.95] tracking-[-0.02em]">
           Tu pedido
         </h1>
         <ul className="flex flex-col divide-y divide-linea">
@@ -106,7 +106,7 @@ export default function PedidoPage() {
               <div className="flex min-w-0 flex-1 flex-col gap-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="font-display text-xl leading-tight">{l.p.name}</p>
+                    <p className="font-semibold leading-tight">{l.p.name}</p>
                     <p className="text-sm text-gris">
                       {variantLabel(l.v.size, l.v.color)}, <span className="num">{l.p.code}</span>
                     </p>

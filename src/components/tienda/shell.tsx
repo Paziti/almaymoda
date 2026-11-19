@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
 import clsx from "clsx";
 import { InstagramLogoIcon, WhatsappLogoIcon, UserIcon, ShoppingBagIcon, MapPinIcon, ClockIcon } from "@phosphor-icons/react";
 import { useListo, useHayEjemplos, useLocal, useCarrito, useCatalogo, whatsappUrl } from "@/lib/tienda";
@@ -20,9 +21,34 @@ export function Wordmark({ className, nameClassName }: { className?: string; nam
   );
 }
 
+function suscribirScroll(cb: () => void) {
+  window.addEventListener("scroll", cb, { passive: true });
+  window.addEventListener("resize", cb);
+  return () => {
+    window.removeEventListener("scroll", cb);
+    window.removeEventListener("resize", cb);
+  };
+}
+
+/** En el inicio, la barra aparece recién cuando la portada terminó su recorrido (el título quedó limpio). */
+function useBarraVisible(enInicio: boolean) {
+  return useSyncExternalStore(
+    suscribirScroll,
+    () => {
+      if (!enInicio) return true;
+      const portada = document.getElementById("portada");
+      if (!portada) return false;
+      return window.scrollY >= portada.offsetTop + portada.offsetHeight - window.innerHeight - 8;
+    },
+    () => !enInicio,
+  );
+}
+
 export function ShopShell({ children }: { children: React.ReactNode }) {
   const hydrated = useListo();
   const pathname = usePathname();
+  const enInicio = pathname === "/";
+  const barra = useBarraVisible(enInicio);
   const { cart } = useCarrito();
   const products = useCatalogo();
   // Sólo cuenta líneas cuyo artículo y variante siguen existiendo (igual que la pantalla del pedido).
@@ -42,6 +68,8 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
       <a href="#contenido" className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-papel focus:px-3 focus:py-2">
         Saltar al contenido
       </a>
+      {/* En el inicio la barra queda escondida hasta que termina la portada; en las demás páginas es la de siempre */}
+      <div className={enInicio ? clsx("fixed inset-x-0 top-0 z-30 transition-transform duration-500 ease-out", !barra && "-translate-y-full") : "contents"} inert={enInicio && !barra}>
       {hydrated && hasDemo && (
         <div className="bg-acento-suave text-tinta text-sm">
           <p className="mx-auto max-w-6xl px-4 py-2 text-center">
@@ -79,6 +107,7 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
           </nav>
         </div>
       </header>
+      </div>
 
       <main id="contenido" className="flex-1">
         {hydrated ? children : <Spinner label="Cargando catálogo" />}

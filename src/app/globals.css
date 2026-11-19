@@ -1,16 +1,7 @@
 @import "tailwindcss";
 
-/* dark: sigue el selector de tema (data-theme) y, si no se eligió nada, la preferencia del sistema */
-@custom-variant dark {
-  &:where([data-theme="dark"], [data-theme="dark"] *) {
-    @slot;
-  }
-  @media (prefers-color-scheme: dark) {
-    &:where(:root:not([data-theme="light"]) *) {
-      @slot;
-    }
-  }
-}
+/* dark: sólo si se eligió con el selector de tema (data-theme). Por defecto el sitio es claro, aunque el celular esté en oscuro. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
   Alma y Moda: tokens de diseño (ver DESIGN.md para el porqué de cada decisión).
@@ -20,16 +11,17 @@
 :root {
   /* Color exacto del círculo del logo: igual en los dos temas */
   --marca: #e5dcd2;
-  --lienzo: #f8f4ef;
+  /* Paleta rosa y terracota: lienzo casi blanco, piedra rosa empolvado para secciones, acento terracota */
+  --lienzo: #fdf8f5;
   --papel: #ffffff;
-  --tinta: #241f1b;
-  --gris: #6b6158;
-  --piedra: #ece4da;
-  --linea: #e2d9ce;
-  --linea-fuerte: #c8bbac;
-  --acento: #8a5434;
-  --acento-hover: #74452a;
-  --acento-suave: #f3e6dc;
+  --tinta: #2a1f1d;
+  --gris: #6b5853;
+  --piedra: #f4dfd8;
+  --linea: #eddcd5;
+  --linea-fuerte: #d6bdb3;
+  --acento: #a84e36;
+  --acento-hover: #8f3f2a;
+  --acento-suave: #f8e6df;
   --sobre-acento: #ffffff;
   --ok: #2b7a57;
   --ok-suave: #e3f2ea;
@@ -39,44 +31,14 @@
   --peligro-suave: #fbe6e4;
   --whatsapp: #1f7a4d;
   /* Franja oscura: la tinta del logo invertida como fondo (no es un color nuevo) */
-  --banda: #241f1b;
-  --sobre-banda: #f8f4ef;
-  --banda-gris: #c9bfb4;
-  --banda-linea: #3e3630;
+  --banda: #2a1f1d;
+  --sobre-banda: #fdf8f5;
+  --banda-gris: #cdbdb7;
+  --banda-linea: #44332f;
   /* Base de las fotos y siluetas: no cambia dentro de la franja oscura */
-  --foto: #efe8df;
-  --foto-texto: #5e554c;
+  --foto: #f6ece7;
+  --foto-texto: #5e4f4a;
   color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --lienzo: #191613;
-    --papel: #221e1a;
-    --tinta: #f2ece4;
-    --gris: #bdb2a6;
-    --piedra: #2d2823;
-    --linea: #38322c;
-    --linea-fuerte: #524940;
-    --acento: #d9a079;
-    --acento-hover: #e6b693;
-    --acento-suave: #3a2a1f;
-    --sobre-acento: #2a1708;
-    --ok: #6ccb9f;
-    --ok-suave: #173326;
-    --alerta: #e9b55c;
-    --alerta-suave: #3a2c12;
-    --peligro: #f28b82;
-    --peligro-suave: #3c1a18;
-    --whatsapp: #5fd497;
-    --banda: #2e2822;
-    --sobre-banda: #f2ece4;
-    --banda-gris: #c4b9ad;
-    --banda-linea: #4a4239;
-    --foto: #2b2621;
-    --foto-texto: #d2c8bc;
-    color-scheme: dark;
-  }
 }
 
 :root[data-theme="dark"] {

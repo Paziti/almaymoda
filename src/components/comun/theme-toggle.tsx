@@ -6,18 +6,13 @@ import { useSyncExternalStore } from "react";
 const EVENT = "almaymoda-theme";
 
 function subscribe(cb: () => void) {
-  const mq = window.matchMedia("(prefers-color-scheme: dark)");
-  mq.addEventListener("change", cb);
   window.addEventListener(EVENT, cb);
-  return () => {
-    mq.removeEventListener("change", cb);
-    window.removeEventListener(EVENT, cb);
-  };
+  return () => window.removeEventListener(EVENT, cb);
 }
 
+// Claro por defecto: el oscuro sólo si se eligió con el botón.
 function isDark() {
-  const explicit = document.documentElement.dataset.theme;
-  return explicit ? explicit === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return document.documentElement.dataset.theme === "dark";
 }
 
 export function ThemeToggle({ className }: { className?: string }) {

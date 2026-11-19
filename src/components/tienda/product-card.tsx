@@ -5,12 +5,15 @@ import { usePrecio, useVerPrecios, useLocal, fmtMoney, totalStock, type Product 
 import { PriceTag } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 
-export function ProductCard({ product }: { product: Product }) {
+/** `antes`: precio anterior, para artículos en oferta (se muestra tachado con el porcentaje de descuento). */
+export function ProductCard({ product, antes }: { product: Product; antes?: number }) {
   const price = usePrecio()(product);
   const showPrice = useVerPrecios();
   const low = useLocal().lowStock;
   const stock = totalStock(product);
   const sizes = [...new Set(product.variants.filter((v) => v.stock > 0 && v.size !== "Único").map((v) => v.size))];
+  // Sin precio visible (hay que ingresar) no se muestra el descuento: delataría el precio.
+  const oferta = showPrice && antes !== undefined && antes > price;
   const colors = new Set(product.variants.filter((v) => v.stock > 0).map((v) => v.color)).size;
 
   return (
@@ -21,14 +24,16 @@ export function ProductCard({ product }: { product: Product }) {
         {product.images.length > 1 && (
           <ProductImage product={product} index={1} className="absolute inset-0 opacity-0 transition-[opacity,scale] duration-500 group-hover:scale-[1.04] group-hover:opacity-100" />
         )}
+        {oferta && <span className="num absolute right-2.5 top-2.5 rounded-full bg-acento px-2.5 py-1 text-sm font-semibold text-sobre-acento">-{Math.round((1 - price / antes) * 100)}%</span>}
         {stock <= 0 && <span className="absolute inset-x-0 top-0 bg-[#241f1b]/85 py-1.5 text-center text-sm font-semibold text-[#f8f4ef]">Sin stock</span>}
         <div className="absolute bottom-2.5 left-2.5">
-          <PriceTag value={showPrice ? fmtMoney(price) : "Ver precio"} size="sm" />
+          <PriceTag value={showPrice ? fmtMoney(price) : "Ver precio"} size="sm" tone={oferta ? "accent" : undefined} />
         </div>
       </div>
       <div className="flex flex-col gap-1">
-        <h3 className="font-display text-xl leading-tight underline-offset-4 group-hover:underline">{product.name}</h3>
+        <h3 className="font-semibold leading-snug underline-offset-4 group-hover:underline">{product.name}</h3>
         <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gris">
+          {oferta && <s className="num">Antes {fmtMoney(antes)}</s>}
           <span className="num">{product.code}</span>
           {colors > 1 && <span>{colors} colores</span>}
           {sizes.length > 0 && (

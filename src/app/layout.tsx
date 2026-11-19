@@ -17,10 +17,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f8f4ef" },
-    { media: "(prefers-color-scheme: dark)", color: "#191613" },
-  ],
+  themeColor: "#fdf8f5",
 };
 
 const themeScript = `try{var t=localStorage.getItem("almaymoda-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}`;
