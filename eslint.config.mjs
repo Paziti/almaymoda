@@ -48,6 +48,8 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
+    // Librerías ya compiladas que se sirven tal cual (visor de PDF).
+    "public/**/*.min.mjs",
     "build/**",
     "next-env.d.ts",
   ]),

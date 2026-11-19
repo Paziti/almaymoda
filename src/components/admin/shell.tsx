@@ -27,6 +27,8 @@ import {
 } from "@phosphor-icons/react";
 import { useDB, useHydrated } from "@/lib/store";
 import { adminAuth } from "@/lib/session";
+import { REMOTE } from "@/lib/supabase";
+import { signIn, signOut, useRemote } from "@/lib/remote";
 import { Button, Field, Input, Spinner } from "@/components/comun/ui";
 import { ThemeToggle } from "@/components/comun/theme-toggle";
 import { LogoMark } from "@/components/comun/logo";
@@ -74,12 +76,8 @@ const isActive = (pathname: string, item: NavItem) => (item.exact ? pathname ===
 
 /* ---------- Ingreso ---------- */
 
-function PinGate() {
-  const pin = useDB((s) => s.settings.pin);
+function Gate() {
   const name = useDB((s) => s.settings.storeName) || "Alma y Moda";
-  const [value, setValue] = useState("");
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState("");
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.05fr_1fr]">
       {/* Lado de marca (escritorio) */}
@@ -94,53 +92,129 @@ function PinGate() {
 
       {/* Formulario */}
       <main className="flex items-center justify-center px-5 py-12">
-        <form
-          noValidate
-          className="flex w-full max-w-sm flex-col gap-6"
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (value === pin) {
-              adminAuth.unlock();
-            } else {
-              setError(value ? "El PIN no es correcto. Probá de nuevo." : "Escribí el PIN.");
-              setValue("");
-              document.getElementById("pin")?.focus();
-            }
-          }}
-        >
-          <LogoMark className="text-[4.5rem] lg:hidden" title={`${name}, mayorista`} />
-          <div className="flex flex-col gap-2">
-            <h1 className="font-display text-4xl leading-tight">Ingresá al panel</h1>
-            <p className="text-gris">Escribí el PIN de los dueños para ver pedidos, stock y remitos.</p>
-          </div>
-          <Field label="PIN" htmlFor="pin" error={error} hint={pin === "1234" ? "PIN de prueba: 1234. Cambialo en Ajustes." : undefined}>
-            <div className="relative">
-              <Input
-                id="pin"
-                name="pin"
-                type={show ? "text" : "password"}
-                inputMode="numeric"
-                autoComplete="current-password"
-                aria-invalid={!!error}
-                aria-describedby={error ? "pin-error" : undefined}
-                className="pr-12 text-lg tracking-[0.3em]"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-              />
-              <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Ocultar PIN" : "Mostrar PIN"} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gris hover:text-tinta">
-                {show ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
-              </button>
-            </div>
-          </Field>
-          <Button type="submit" size="lg" className="w-full">
-            Entrar
-          </Button>
-          <Link href="/" className="inline-flex min-h-11 items-center justify-center gap-2 text-sm text-gris hover:text-tinta">
-            <StorefrontIcon size={18} aria-hidden /> Ir a la tienda
-          </Link>
-        </form>
+        {REMOTE ? <MailForm name={name} /> : <PinForm name={name} />}
       </main>
     </div>
+  );
+}
+
+const storeLink = (
+  <Link href="/" className="inline-flex min-h-11 items-center justify-center gap-2 text-sm text-gris hover:text-tinta">
+    <StorefrontIcon size={18} aria-hidden /> Ir a la tienda
+  </Link>
+);
+
+/** Con Supabase: cada dueño entra con su mail y contraseña. */
+function MailForm({ name }: { name: string }) {
+  const email = useRemote((s) => s.email);
+  const [mail, setMail] = useState(email ?? "");
+  const [pass, setPass] = useState("");
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <form
+      noValidate
+      className="flex w-full max-w-sm flex-col gap-6"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (!mail.trim() || !pass) {
+          setError("Escribí tu mail y tu contraseña.");
+          return;
+        }
+        setBusy(true);
+        const err = await signIn(mail, pass);
+        setBusy(false);
+        if (err) {
+          setError(err);
+          setPass("");
+          document.getElementById("g-pass")?.focus();
+        }
+      }}
+    >
+      <LogoMark className="text-[4.5rem] lg:hidden" title={`${name}, mayorista`} />
+      <div className="flex flex-col gap-2">
+        <h1 className="font-display text-4xl leading-tight">Ingresá al panel</h1>
+        <p className="text-gris">Entrá con tu cuenta de dueño para ver pedidos, stock y remitos.</p>
+      </div>
+      <Field label="Mail" htmlFor="g-mail">
+        <Input id="g-mail" name="email" type="email" autoComplete="username" value={mail} onChange={(e) => setMail(e.target.value)} />
+      </Field>
+      <Field label="Contraseña" htmlFor="g-pass" error={error}>
+        <div className="relative">
+          <Input
+            id="g-pass"
+            name="password"
+            type={show ? "text" : "password"}
+            autoComplete="current-password"
+            aria-invalid={!!error}
+            className="pr-12"
+            value={pass}
+            onChange={(e) => setPass(e.target.value)}
+          />
+          <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Ocultar contraseña" : "Mostrar contraseña"} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gris hover:text-tinta">
+            {show ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
+          </button>
+        </div>
+      </Field>
+      <Button type="submit" size="lg" className="w-full" disabled={busy}>
+        {busy ? "Entrando…" : "Entrar"}
+      </Button>
+      {storeLink}
+    </form>
+  );
+}
+
+/** Sin Supabase (etapa 1): PIN compartido guardado en el navegador. */
+function PinForm({ name }: { name: string }) {
+  const pin = useDB((s) => s.settings.pin);
+  const [value, setValue] = useState("");
+  const [show, setShow] = useState(false);
+  const [error, setError] = useState("");
+  return (
+    <form
+      noValidate
+      className="flex w-full max-w-sm flex-col gap-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (value === pin) {
+          adminAuth.unlock();
+        } else {
+          setError(value ? "El PIN no es correcto. Probá de nuevo." : "Escribí el PIN.");
+          setValue("");
+          document.getElementById("pin")?.focus();
+        }
+      }}
+    >
+      <LogoMark className="text-[4.5rem] lg:hidden" title={`${name}, mayorista`} />
+      <div className="flex flex-col gap-2">
+        <h1 className="font-display text-4xl leading-tight">Ingresá al panel</h1>
+        <p className="text-gris">Escribí el PIN de los dueños para ver pedidos, stock y remitos.</p>
+      </div>
+      <Field label="PIN" htmlFor="pin" error={error} hint={pin === "1234" ? "PIN de prueba: 1234. Cambialo en Ajustes." : undefined}>
+        <div className="relative">
+          <Input
+            id="pin"
+            name="pin"
+            type={show ? "text" : "password"}
+            inputMode="numeric"
+            autoComplete="current-password"
+            aria-invalid={!!error}
+            aria-describedby={error ? "pin-error" : undefined}
+            className="pr-12 text-lg tracking-[0.3em]"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+          <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Ocultar PIN" : "Mostrar PIN"} className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-gris hover:text-tinta">
+            {show ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
+          </button>
+        </div>
+      </Field>
+      <Button type="submit" size="lg" className="w-full">
+        Entrar
+      </Button>
+      {storeLink}
+    </form>
   );
 }
 
@@ -149,7 +223,9 @@ function PinGate() {
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const hydrated = useHydrated();
   const pathname = usePathname();
-  const unlocked = useSyncExternalStore(adminAuth.subscribe, adminAuth.isUnlocked, () => false);
+  const pinUnlocked = useSyncExternalStore(adminAuth.subscribe, adminAuth.isUnlocked, () => false);
+  const remoteMode = useRemote((s) => s.mode);
+  const unlocked = REMOTE ? remoteMode === "duenos" : pinUnlocked;
   const [moreOpen, setMoreOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
   const newOrders = useDB((s) => s.orders.filter((o) => o.status === "nuevo").length);
@@ -168,9 +244,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   if (!hydrated) return <Spinner label="Abriendo el panel" />;
-  if (!unlocked) return <PinGate />;
+  if (!unlocked) return <Gate />;
 
-  const lock = () => adminAuth.lock();
+  const lock = () => (REMOTE ? void signOut() : adminAuth.lock());
 
   const navLink = (item: NavItem) => {
     const active = isActive(pathname, item);

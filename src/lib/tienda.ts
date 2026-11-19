@@ -14,8 +14,11 @@
 import { useMemo } from "react";
 import { useDB, useHydrated } from "./store";
 import { useSession, type CartLine } from "./session";
-import { usePricer, useHasDemo } from "./hooks";
+import { useShopPricer, useRegularPricer, useHasDemo } from "./hooks";
+import { isOnSale, totalStock } from "./pricing";
 import { now, uid } from "./format";
+import { REMOTE, supabase } from "./supabase";
+import "./remote";
 import type { Client, LineItem, Order, OrderStatus, Product, Variant } from "./types";
 
 export type { CartLine, Order, OrderStatus, Product, Variant, LineItem };
@@ -67,8 +70,26 @@ export function useArticulo(id: string | null | undefined): Product | undefined 
   return useDB((s) => (id ? s.products.find((p) => p.id === id && p.active) : undefined));
 }
 
-/** Función que devuelve el precio de venta de un artículo. */
-export const usePrecio = usePricer;
+/**
+ * Función que devuelve el precio que paga la clienta.
+ * Si el artículo está en oferta, ya devuelve el precio con descuento (también en el carrito y el pedido).
+ */
+export const usePrecio = useShopPricer;
+
+/** Función que devuelve el precio anterior (sin oferta) para mostrarlo tachado; undefined si no está en oferta. */
+export const usePrecioAntes = useRegularPricer;
+
+/** true si el artículo está en oferta (se prende y se apaga desde el panel). */
+export const enOferta = (p: Product) => isOnSale(p);
+
+/** Artículos publicados en oferta, primero los que tienen stock. Vacío = no mostrar la sección. */
+export function useOfertas(): Product[] {
+  const catalogo = useCatalogo();
+  return useMemo(() => {
+    const o = catalogo.filter(isOnSale);
+    return [...o.filter((p) => totalStock(p) > 0), ...o.filter((p) => totalStock(p) <= 0)];
+  }, [catalogo]);
+}
 
 /** false si el local pide ingresar para ver precios y la clienta no ingresó. */
 export function useVerPrecios() {
@@ -95,13 +116,18 @@ export function useClienta() {
   const clientId = useSession((s) => s.clientId);
   const login = useSession((s) => s.login);
   const logout = useSession((s) => s.logout);
-  const clients = useDB((s) => s.clients);
+  const perfil = useSession((s) => s.perfil);
+  const setPerfil = useSession((s) => s.setPerfil);
+  const stored = useDB((s) => s.clients);
+  // Con Supabase la tienda no lee la tabla de clientas: usa los datos guardados en este navegador.
+  const clients = REMOTE ? (perfil ? [perfil] : []) : stored;
   const orders = useDB((s) => s.orders);
   const saveClient = useDB((s) => s.saveClient);
 
   const clienta = clients.find((c) => c.id === clientId) as Clienta | undefined;
+  // Con Supabase el historial de pedidos todavía no se muestra (hace falta que la clienta confirme su identidad).
   const pedidos = useMemo(
-    () => (clientId ? orders.filter((o) => o.clientId === clientId).sort((a, b) => b.createdAt - a.createdAt) : []),
+    () => (clientId && !REMOTE ? orders.filter((o) => o.clientId === clientId).sort((a, b) => b.createdAt - a.createdAt) : []),
     [orders, clientId],
   );
 
@@ -118,8 +144,11 @@ export function useClienta() {
     /** Crea la cuenta y deja a la clienta ingresada. */
     registrar(datos: Omit<Clienta, "id">) {
       const c: Client = { ...datos, id: uid("c"), name: datos.name.trim(), address: "", cuit: "", notes: "Alta desde la tienda", createdAt: now() };
-      saveClient(c);
-      login(c.id);
+      if (REMOTE) setPerfil(c);
+      else {
+        saveClient(c);
+        login(c.id);
+      }
     },
     salir: logout,
   };
@@ -133,9 +162,48 @@ export interface NuevoPedido {
   notes: string;
 }
 
+/** Manda el pedido a Supabase. La base recalcula los precios y devuelve el número. */
+async function pedirEnLaBase(p: NuevoPedido): Promise<Order> {
+  const { data, error } = await supabase!.rpc("create_order", {
+    customer: p.customer,
+    items: p.items.map((i) => ({ variantId: i.variantId, qty: i.qty })),
+    notes: p.notes,
+  });
+  if (error) throw new Error(error.message);
+  const r = data as { id: string; number: number; items: LineItem[] };
+  return { id: r.id, number: r.number, createdAt: now(), clientId: null, customer: p.customer, items: r.items, notes: p.notes, status: "nuevo", remitoId: null };
+}
+
+/**
+ * Registra el pedido y devuelve una promesa con el pedido ya numerado.
+ * Funciona con y sin Supabase: usar esta en lugar de useEnviarPedido.
+ * Si algo falla (por ejemplo, un artículo que se quedó sin publicar) la promesa se rechaza con un mensaje para mostrar.
+ */
+export function usePedir() {
+  const enviar = useEnviarPedido();
+  const perfil = useSession((s) => s.perfil);
+  const setPerfil = useSession((s) => s.setPerfil);
+  return async (p: NuevoPedido): Promise<Order> => {
+    if (!REMOTE) return enviar(p);
+    const order = await pedirEnLaBase(p);
+    const { name, phone, business, city } = p.customer;
+    const mismo = perfil && ultimos8(perfil.phone) === ultimos8(phone);
+    setPerfil({
+      ...(mismo ? perfil : { id: uid("c"), email: "", address: "", cuit: "", notes: "", createdAt: now() }),
+      name,
+      phone,
+      business: business || (mismo ? perfil.business : ""),
+      city: city || (mismo ? perfil.city : ""),
+    });
+    return order;
+  };
+}
+
 /**
  * Registra el pedido: da de alta o actualiza a la clienta por teléfono,
  * la deja ingresada y guarda el pedido para que lo vean en el panel.
+ * @deprecated Con Supabase el número llega después: usar usePedir. Acá, con Supabase, el pedido
+ * se manda igual pero el número que devuelve es 0.
  */
 export function useEnviarPedido() {
   const clients = useDB((s) => s.clients);
@@ -144,6 +212,10 @@ export function useEnviarPedido() {
   const login = useSession((s) => s.login);
 
   return (p: NuevoPedido): Order => {
+    if (REMOTE) {
+      pedirEnLaBase(p).catch((err) => console.error("[almaymoda] No se pudo registrar el pedido", err));
+      return { id: uid("o"), number: 0, createdAt: now(), clientId: null, customer: p.customer, items: p.items, notes: p.notes, status: "nuevo", remitoId: null };
+    }
     const { name, phone, business, city } = p.customer;
     const d = ultimos8(phone);
     const found = d.length >= 8 ? clients.find((c) => ultimos8(c.phone) === d) : undefined;

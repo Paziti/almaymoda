@@ -7,13 +7,13 @@ import { MagnifyingGlassIcon, PlusIcon, HandbagIcon, EyeSlashIcon } from "@phosp
 import { useDB } from "@/lib/store";
 import { fmtMoney, normalizeText } from "@/lib/format";
 import { cleanBarcode, looksLikeBarcode, newProductHref, productSearchText } from "@/lib/barcode";
-import { stockLevel, totalStock } from "@/lib/pricing";
+import { isOnSale, stockLevel, totalStock } from "@/lib/pricing";
 import { useListPricer } from "@/lib/hooks";
 import { Badge, ButtonLink, EmptyState, Input, Panel, PriceTag, Select, Spinner } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
-type Estado = "todos" | "sin" | "bajo" | "ocultos";
+type Estado = "todos" | "sin" | "bajo" | "ocultos" | "oferta";
 
 function Lista() {
   const params = useSearchParams();
@@ -36,6 +36,7 @@ function Lista() {
         if (estado === "sin" && lvl !== "sin") return false;
         if (estado === "bajo" && lvl === "ok") return false;
         if (estado === "ocultos" && p.active) return false;
+        if (estado === "oferta" && !isOnSale(p)) return false;
         if (nq && !normalizeText(productSearchText(p)).includes(looksLikeBarcode(q) ? cleanBarcode(q) : nq)) return false;
         return true;
       })
@@ -82,6 +83,7 @@ function Lista() {
               <option value="bajo">Stock bajo</option>
               <option value="sin">Sin stock</option>
               <option value="ocultos">Ocultos</option>
+              <option value="oferta">En oferta</option>
             </Select>
           </div>
         </div>
@@ -145,6 +147,7 @@ function Lista() {
                       <div className="min-w-0">
                         <p className="flex items-center gap-2 font-semibold">
                           <span className="truncate">{p.name}</span>
+                          {isOnSale(p) && <Badge tone="acento">-{p.salePercent}%</Badge>}
                           {!p.active && <EyeSlashIcon size={16} className="shrink-0 text-gris" aria-label="Oculto en la tienda" />}
                         </p>
                         <p className="num text-sm text-gris">

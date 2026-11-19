@@ -44,6 +44,24 @@ export function priceFor(list: PriceList, p: Priced, suppliers: Supplier[], sett
   return list === "minorista" ? retailPrice(p, suppliers, settings) : salePrice(p, suppliers, settings);
 }
 
+/** Descuento que se propone al prender la oferta de un artículo. */
+export const DEFAULT_SALE_PERCENT = 20;
+
+type OnSale = Pick<Product, "onSale" | "salePercent">;
+
+/** true si la oferta está prendida y tiene un descuento válido. */
+export const isOnSale = (p: OnSale) => !!p.onSale && (p.salePercent ?? 0) > 0 && (p.salePercent ?? 0) < 100;
+
+/** Precio con el descuento aplicado, redondeado igual que el resto de los precios. */
+export const discounted = (regular: number, percent: number, rounding: Rounding) => roundPrice(regular * (1 - percent / 100), rounding);
+
+/** Precio que paga la clienta en la tienda: el mayorista, o el de oferta si está prendida. */
+export function shopPrice(p: Pick<Product, "cost" | "coefficient" | "supplierId" | "priceOverride" | "shopPrices"> & OnSale, suppliers: Supplier[], settings: Settings) {
+  if (p.shopPrices) return p.shopPrices.price;
+  const regular = salePrice(p, suppliers, settings);
+  return isOnSale(p) ? discounted(regular, p.salePercent!, settings.rounding) : regular;
+}
+
 export const totalStock = (p: Pick<Product, "variants">) =>
   p.variants.reduce((acc, v) => acc + Math.max(0, v.stock), 0);
 

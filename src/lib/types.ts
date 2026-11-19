@@ -29,6 +29,12 @@ export interface Product {
   variants: Variant[];
   active: boolean;
   featured: boolean;
+  /** En oferta en la tienda. Se puede apagar sin perder el porcentaje cargado. */
+  onSale?: boolean;
+  /** Descuento de la oferta, en % sobre el precio mayorista (1 a 90). */
+  salePercent?: number;
+  /** Sólo en la tienda con Supabase: precios ya calculados por la base (la tienda no recibe el costo). */
+  shopPrices?: { price: number; regular?: number };
   /** Color de la silueta cuando no hay foto (sólo datos de ejemplo). */
   swatch?: string;
   demo?: boolean;

@@ -28,6 +28,16 @@ const withDefaults = (s: Supplier): Supplier => ({
 
 const blank = (): Supplier => withDefaults({ id: uid("s"), name: "", contact: "", phone: "", email: "", coefficient: null, notes: "" });
 
+/** Bloque del formulario con título chico y una línea arriba que lo separa del anterior. */
+function FormSection({ title, first, children }: { title: string; first?: boolean; children: React.ReactNode }) {
+  return (
+    <section className={first ? "" : "border-t border-linea pt-5"}>
+      <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-gris">{title}</h3>
+      <div className="grid gap-4 sm:grid-cols-6">{children}</div>
+    </section>
+  );
+}
+
 function docError(type: DocType, digits: string) {
   if (!digits) return "";
   if (type === "CUIT" && digits.length !== 11) return "El CUIT tiene 11 números.";
@@ -174,28 +184,33 @@ export default function ProveedoresPage() {
         }
       >
         {editing && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Nombre" htmlFor="sp-name" error={error} className="sm:col-span-2">
-              <Input id="sp-name" {...f("name")} />
-            </Field>
-            <Field label="Razón social" htmlFor="sp-legal" className="sm:col-span-2">
-              <Input id="sp-legal" placeholder="Como figura en las facturas" {...f("legalName")} />
-            </Field>
-            <Field label="Categoría" htmlFor="sp-tax">
-              <Select id="sp-tax" value={editing.taxCategory ?? ""} onChange={(e) => setEditing((s) => (s ? { ...s, taxCategory: e.target.value as TaxCategory } : s))}>
-                <option value="">Sin indicar</option>
-                {TAX_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label={editing.docType ?? "CUIT"} htmlFor="sp-doc" error={docErr} hint={DOC_LENGTH[editing.docType ?? "CUIT"] + ", sin guiones ni puntos"}>
-              <div className="flex gap-2">
+          <div className="flex flex-col gap-5">
+            <FormSection title="General" first>
+              <Field label="Nombre" htmlFor="sp-name" error={error} className="sm:col-span-4">
+                <Input id="sp-name" placeholder="Como lo llaman ustedes" {...f("name")} />
+              </Field>
+              <Field label="Coeficiente" htmlFor="sp-coef" hint={`Vacío = general (${fmtCoef(general)})`} className="sm:col-span-2">
+                <Input id="sp-coef" inputMode="decimal" className="num" value={coefText} onChange={(e) => setCoefText(e.target.value)} />
+              </Field>
+            </FormSection>
+
+            <FormSection title="Facturación">
+              <Field label="Razón social" htmlFor="sp-legal" className="sm:col-span-6">
+                <Input id="sp-legal" placeholder="Como figura en las facturas" {...f("legalName")} />
+              </Field>
+              <Field label="Categoría" htmlFor="sp-tax" className="sm:col-span-2">
+                <Select id="sp-tax" value={editing.taxCategory ?? ""} onChange={(e) => setEditing((s) => (s ? { ...s, taxCategory: e.target.value as TaxCategory } : s))}>
+                  <option value="">Sin indicar</option>
+                  {TAX_CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Documento" htmlFor="sp-doctype" className="sm:col-span-1">
                 <Select
-                  aria-label="Tipo de documento"
-                  className="w-28 shrink-0"
+                  id="sp-doctype"
                   value={editing.docType ?? "CUIT"}
                   onChange={(e) => {
                     setDocErr("");
@@ -205,6 +220,8 @@ export default function ProveedoresPage() {
                   <option value="CUIT">CUIT</option>
                   <option value="DNI">DNI</option>
                 </Select>
+              </Field>
+              <Field label={`Número de ${editing.docType ?? "CUIT"}`} htmlFor="sp-doc" error={docErr} hint={`${DOC_LENGTH[editing.docType ?? "CUIT"]}, sin guiones ni puntos`} className="sm:col-span-3">
                 <Input
                   id="sp-doc"
                   inputMode="numeric"
@@ -220,32 +237,38 @@ export default function ProveedoresPage() {
                     setEditing((s) => (s ? { ...s, docNumber: digits } : s));
                   }}
                 />
-              </div>
-            </Field>
-            <Field label="Domicilio" htmlFor="sp-address" className="sm:col-span-2">
-              <Input id="sp-address" placeholder="Calle y número" autoComplete="off" {...f("address")} />
-            </Field>
-            <Field label="Localidad" htmlFor="sp-city">
-              <Input id="sp-city" {...f("city")} />
-            </Field>
-            <Field label="Código postal" htmlFor="sp-cp">
-              <Input id="sp-cp" placeholder="1000 o C1000AAA" maxLength={8} {...f("postalCode")} />
-            </Field>
-            <Field label="Contacto" htmlFor="sp-contact">
-              <Input id="sp-contact" placeholder="Con quién hablan" {...f("contact")} />
-            </Field>
-            <Field label="Teléfono / WhatsApp" htmlFor="sp-phone">
-              <Input id="sp-phone" type="tel" inputMode="tel" {...f("phone")} />
-            </Field>
-            <Field label="Email" htmlFor="sp-mail">
-              <Input id="sp-mail" type="email" placeholder="email@ejemplo.com" {...f("email")} />
-            </Field>
-            <Field label="Coeficiente" htmlFor="sp-coef" hint={`Vacío = general (${fmtCoef(general)})`}>
-              <Input id="sp-coef" inputMode="decimal" className="num" value={coefText} onChange={(e) => setCoefText(e.target.value)} />
-            </Field>
-            <Field label="Notas" htmlFor="sp-notes" className="sm:col-span-2">
-              <Textarea id="sp-notes" rows={2} {...f("notes")} />
-            </Field>
+              </Field>
+            </FormSection>
+
+            <FormSection title="Ubicación">
+              <Field label="Domicilio" htmlFor="sp-address" className="sm:col-span-6">
+                <Input id="sp-address" placeholder="Calle y número" autoComplete="off" {...f("address")} />
+              </Field>
+              <Field label="Localidad" htmlFor="sp-city" className="sm:col-span-4">
+                <Input id="sp-city" {...f("city")} />
+              </Field>
+              <Field label="Código postal" htmlFor="sp-cp" className="sm:col-span-2">
+                <Input id="sp-cp" placeholder="8000" maxLength={8} {...f("postalCode")} />
+              </Field>
+            </FormSection>
+
+            <FormSection title="Contacto">
+              <Field label="Persona" htmlFor="sp-contact" className="sm:col-span-2">
+                <Input id="sp-contact" placeholder="Con quién hablan" {...f("contact")} />
+              </Field>
+              <Field label="Teléfono / WhatsApp" htmlFor="sp-phone" className="sm:col-span-2">
+                <Input id="sp-phone" type="tel" inputMode="tel" {...f("phone")} />
+              </Field>
+              <Field label="Email" htmlFor="sp-mail" className="sm:col-span-2">
+                <Input id="sp-mail" type="email" placeholder="email@ejemplo.com" {...f("email")} />
+              </Field>
+            </FormSection>
+
+            <FormSection title="Otros">
+              <Field label="Notas" htmlFor="sp-notes" className="sm:col-span-6">
+                <Textarea id="sp-notes" rows={2} placeholder="Días de entrega, forma de pago, lo que haga falta" {...f("notes")} />
+              </Field>
+            </FormSection>
           </div>
         )}
       </Dialog>

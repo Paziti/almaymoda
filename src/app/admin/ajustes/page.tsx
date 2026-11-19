@@ -8,6 +8,8 @@ import { fmtCoef, parseNumber, remitoNumber } from "@/lib/format";
 import { downloadBlob } from "@/lib/share";
 import { useHasDemo } from "@/lib/hooks";
 import type { Settings } from "@/lib/types";
+import { REMOTE } from "@/lib/supabase";
+import { useRemote } from "@/lib/remote";
 import { Button, ConfirmButton, Field, Input, Panel, Switch, Textarea } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
@@ -58,6 +60,7 @@ export default function AjustesPage() {
   const loadDemo = useDB((s) => s.loadDemo);
   const resetAll = useDB((s) => s.resetAll);
   const replaceAll = useDB((s) => s.replaceAll);
+  const email = useRemote((s) => s.email);
   const hasDemo = useHasDemo();
 
   const [form, setForm] = useState<Settings>(settings);
@@ -194,10 +197,19 @@ export default function AjustesPage() {
 
         <Panel className="flex flex-col gap-4 p-5">
           <h2 className="font-semibold">Acceso al panel</h2>
-          <Field label="PIN" htmlFor="s-pin" hint="Lo piden al entrar al panel desde cada dispositivo">
-            <Input id="s-pin" inputMode="numeric" className="num max-w-40" value={pin2} onChange={(e) => setPin2(e.target.value.replace(/\D/g, "").slice(0, 8))} />
-          </Field>
-          {pin2 === "1234" && <p className="text-sm font-semibold text-alerta">Siguen con el PIN de prueba. Cámbienlo antes de compartir el link.</p>}
+          {REMOTE ? (
+            <p className="text-sm text-gris">
+              {email ? <>Entraste como <strong className="text-tinta">{email}</strong>. </> : null}
+              Cada dueño entra con su mail y contraseña. Las cuentas se crean en Supabase (Authentication → Users) y se habilitan en la tabla owners.
+            </p>
+          ) : (
+            <>
+              <Field label="PIN" htmlFor="s-pin" hint="Lo piden al entrar al panel desde cada dispositivo">
+                <Input id="s-pin" inputMode="numeric" className="num max-w-40" value={pin2} onChange={(e) => setPin2(e.target.value.replace(/\D/g, "").slice(0, 8))} />
+              </Field>
+              {pin2 === "1234" && <p className="text-sm font-semibold text-alerta">Siguen con el PIN de prueba. Cámbienlo antes de compartir el link.</p>}
+            </>
+          )}
         </Panel>
 
         <Panel className="flex flex-col gap-4 p-5 xl:col-span-2" as="section">

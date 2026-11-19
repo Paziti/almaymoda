@@ -3,6 +3,8 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
+import type { Client } from "./types";
+
 export interface CartLine {
   productId: string;
   variantId: string;
@@ -12,6 +14,9 @@ export interface CartLine {
 interface SessionState {
   cart: CartLine[];
   clientId: string | null;
+  /** Con Supabase: los datos de la clienta quedan en su navegador (la tienda no puede leer la tabla de clientas). */
+  perfil: Client | null;
+  setPerfil: (c: Client) => void;
   setQty: (productId: string, variantId: string, qty: number) => void;
   addMany: (lines: CartLine[]) => void;
   clearCart: () => void;
@@ -24,6 +29,8 @@ export const useSession = create<SessionState>()(
     (set) => ({
       cart: [],
       clientId: null,
+      perfil: null,
+      setPerfil: (perfil) => set({ perfil, clientId: perfil.id }),
       setQty: (productId, variantId, qty) =>
         set((s) => {
           const rest = s.cart.filter((l) => !(l.productId === productId && l.variantId === variantId));

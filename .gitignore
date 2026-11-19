@@ -49,3 +49,6 @@ skills-lock.json
 
 # Ajustes personales de Claude Code
 .claude/settings.local.json
+
+# Datos reales del cliente (base de Jaque, inventario, clientes): nunca al repo
+/archivos/

@@ -18,6 +18,9 @@ import type {
 } from "./types";
 import { CATEGORIAS, LEGACY_CATEGORIAS, LEGACY_MEDIDAS, MEDIDAS, defaultSettings, demoClients, demoOrders, demoProducts, demoSuppliers } from "./seed";
 import { uid } from "./format";
+import { REMOTE } from "./supabase";
+
+const noStorage: StateStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
 
 const idbStorage: StateStorage = {
   getItem: async (name) => (await get<string>(name)) ?? null,
@@ -48,6 +51,8 @@ export interface ImportChange {
 }
 
 interface Actions {
+  /** true cuando los datos ya están listos (del navegador o de Supabase). */
+  ready: boolean;
   updateSettings: (patch: Partial<Settings>) => void;
   saveProduct: (p: Product, movements?: { variantId: string; delta: number }[], reason?: string) => void;
   deleteProduct: (id: string) => void;
@@ -107,7 +112,9 @@ function applyStockToItems(products: Product[], items: LineItem[], sign: 1 | -1,
 export const useDB = create<DBState & Actions>()(
   persist(
     (setState, getState) => ({
-      ...initialDB(),
+      // Con Supabase arranca vacío y src/lib/remote.ts trae los datos de la base.
+      ...(REMOTE ? emptyDB(defaultSettings) : initialDB()),
+      ready: false,
 
       updateSettings: (patch) => setState((s) => ({ settings: { ...s.settings, ...patch } })),
 
@@ -318,9 +325,11 @@ export const useDB = create<DBState & Actions>()(
     }),
     {
       name: "almaymoda-db",
-      version: 4,
-      migrate: (persisted, version) => (version < 4 ? refreshDemo(persisted as Partial<DBState>) : persisted) as DBState,
-      storage: createJSONStorage(() => idbStorage),
+      version: 5,
+      migrate: (persisted, version) => (version < 5 ? refreshDemo(persisted as Partial<DBState>) : persisted) as DBState,
+      // Con Supabase no se guarda nada en el navegador.
+      storage: createJSONStorage(() => (REMOTE ? noStorage : idbStorage)),
+      skipHydration: REMOTE,
       partialize: (s) => ({
         settings: s.settings,
         products: s.products,
@@ -342,7 +351,7 @@ export const useDB = create<DBState & Actions>()(
 const sameList = (a: string[] | undefined, b: string[]) => !!a && a.length === b.length && a.every((x, i) => x === b[i]);
 
 /**
- * v1 → v2: la tienda es de accesorios, no de ropa. v2 → v4: los ejemplos suman fotos provisorias.
+ * v1 → v2: la tienda es de accesorios, no de ropa. v2 → v4: los ejemplos suman fotos provisorias. v5: algunos ejemplos en oferta.
  * Renueva los artículos de ejemplo y los valores por defecto que nadie tocó.
  * Lo que cargaron los dueños no se modifica.
  */
@@ -376,8 +385,14 @@ function stripUndefined<T extends object>(o: T): Partial<T> {
   return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined)) as Partial<T>;
 }
 
-/** true cuando los datos guardados en el dispositivo ya se cargaron. */
-export function useHydrated() {
+/** true cuando los datos ya se cargaron: del navegador (etapa 1) o de Supabase. */
+export const useHydrated = REMOTE ? useRemoteReady : useLocalHydrated;
+
+function useRemoteReady() {
+  return useDB((s) => s.ready);
+}
+
+function useLocalHydrated() {
   return useSyncExternalStore(
     (cb) => useDB.persist.onFinishHydration(cb),
     () => useDB.persist.hasHydrated(),

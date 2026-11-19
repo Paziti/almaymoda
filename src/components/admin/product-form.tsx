@@ -8,7 +8,7 @@ import { CameraIcon, ImageIcon, TrashIcon, StarIcon, PlusIcon, XIcon, CircleNotc
 import { useDB } from "@/lib/store";
 import type { Product, Variant } from "@/lib/types";
 import { fmtCoef, fmtMoney, now, parseNumber, uid } from "@/lib/format";
-import { coefSourceLabel, effectiveCoefficient, retailFromWholesale, roundPrice } from "@/lib/pricing";
+import { DEFAULT_SALE_PERCENT, coefSourceLabel, discounted, effectiveCoefficient, retailFromWholesale, roundPrice } from "@/lib/pricing";
 import { processPhoto, type PhotoStage } from "@/lib/image";
 import { cleanBarcode, looksLikeBarcode } from "@/lib/barcode";
 import { Button, ConfirmButton, Field, Input, Panel, PriceTag, Segmented, Select, Switch, Textarea } from "@/components/comun/ui";
@@ -58,6 +58,7 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
   const [coefText, setCoefText] = useState(initial?.coefficient ? String(initial.coefficient).replace(".", ",") : "");
   const [fixedText, setFixedText] = useState(initial?.priceOverride ? String(initial.priceOverride) : "");
   const [retailText, setRetailText] = useState(initial?.retailPrice ? String(initial.retailPrice) : "");
+  const [saleText, setSaleText] = useState(String(initial?.salePercent ?? DEFAULT_SALE_PERCENT));
   const [priceMode, setPriceMode] = useState<"auto" | "coef" | "fijo">(initial?.priceOverride ? "fijo" : initial?.coefficient ? "coef" : "auto");
 
   const initSizes = initial ? [...new Set(initial.variants.map((v) => v.size))] : ["Único"];
@@ -83,6 +84,9 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
   const ownRetail = parseNumber(retailText);
   const autoRetail = retailFromWholesale(finalPrice, settings);
   const finalRetail = ownRetail && ownRetail > 0 ? ownRetail : autoRetail;
+  const salePercent = parseNumber(saleText);
+  const saleOk = salePercent !== null && salePercent >= 1 && salePercent <= 90;
+  const offerPrice = saleOk ? discounted(finalPrice, salePercent, settings.rounding) : finalPrice;
 
   const units = Object.entries(stock)
     .filter(([k]) => colors.includes(k.split("|")[0]) && sizes.includes(k.split("|")[1]))
@@ -130,6 +134,7 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
       if (other) errs.barcode = `Ya lo tiene ${other.name} (${other.code}).`;
     }
     if (priceMode === "fijo" && !(parseNumber(fixedText) ?? 0)) errs.price = "Poné el precio fijo.";
+    if (p.onSale && !saleOk) errs.sale = "Poné un descuento entre 1 y 90 %.";
     if (priceMode !== "fijo" && cost <= 0) errs.cost = "Poné el costo para calcular el precio.";
     setErrors(errs);
     if (Object.keys(errs).length) {
@@ -160,6 +165,8 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
       coefficient: priceMode === "coef" && ownCoef ? ownCoef : null,
       priceOverride: priceMode === "fijo" ? parseNumber(fixedText) : null,
       retailPrice: ownRetail && ownRetail > 0 ? ownRetail : null,
+      onSale: !!p.onSale,
+      salePercent: saleOk ? salePercent : p.salePercent,
       variants,
       demo: false,
     };
@@ -474,6 +481,24 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
             <h2 className="font-semibold">En la tienda</h2>
             <Switch checked={p.active} onChange={(v) => set("active", v)} label="Publicado" description="Si lo apagás, no se ve en la tienda" />
             <Switch checked={p.featured} onChange={(v) => set("featured", v)} label="Destacado" description="Aparece en la portada" />
+            <Switch checked={!!p.onSale} onChange={(v) => set("onSale", v)} label="En oferta" description="Sale en la sección Ofertas con el precio anterior tachado" />
+            {p.onSale && (
+              <div className="flex flex-col gap-3 rounded-xl bg-piedra p-4">
+                <Field label="Descuento" htmlFor="f-sale" error={errors.sale} hint="Sobre el precio mayorista. Si apagás la oferta, el porcentaje queda guardado.">
+                  <div className="flex items-center gap-2">
+                    <Input id="f-sale" inputMode="decimal" className="num w-24" value={saleText} onChange={(e) => setSaleText(e.target.value)} />
+                    <span className="font-semibold">%</span>
+                  </div>
+                </Field>
+                {saleOk && finalPrice > 0 && (
+                  <div className="flex items-center justify-between gap-2">
+                    <s className="num text-sm text-gris">{fmtMoney(finalPrice)}</s>
+                    <PriceTag value={fmtMoney(offerPrice)} tone="accent" />
+                  </div>
+                )}
+                {saleOk && cost > 0 && offerPrice > 0 && offerPrice <= cost && <p className="text-sm font-semibold text-peligro">Con este descuento se vende al costo o por debajo.</p>}
+              </div>
+            )}
           </Panel>
 
           <div className="safe-bottom fixed inset-x-0 bottom-16 z-30 flex gap-2 border-t border-linea bg-papel p-3 lg:static lg:flex-col lg:border-0 lg:bg-transparent lg:p-0">
