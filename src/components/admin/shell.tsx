@@ -252,7 +252,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  if (!hydrated) return <Spinner label="Abriendo el panel" />;
+  if (!hydrated || (REMOTE && remoteMode === "cargando")) return <Spinner label="Abriendo el panel" />;
   if (!unlocked) return <Gate />;
 
   const lock = () => (REMOTE ? void signOut() : adminAuth.lock());

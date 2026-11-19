@@ -13,7 +13,12 @@
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
   },
-  // Dirección de prueba almaymoda.<cuenta>.workers.dev, hasta que esté el dominio propio
+  // Dominio propio: Cloudflare crea solo los registros DNS y el certificado.
+  "routes": [
+    { "pattern": "almaymoda.com.ar", "custom_domain": true },
+    { "pattern": "www.almaymoda.com.ar", "custom_domain": true }
+  ],
+  // La dirección de prueba almaymoda.<cuenta>.workers.dev sigue andando por ahora.
   "workers_dev": true,
   "preview_urls": false
 }

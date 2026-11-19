@@ -362,6 +362,32 @@ async function fetchAll(table: string, order: string, ascending = true, limit = 
   return out;
 }
 
+/* Copia del último catálogo público en este navegador: la tienda se ve al instante y después se actualiza. */
+const SHOP_CACHE = "almaymoda-catalogo";
+
+function shopState(settings: Settings, products: Product[]): DBState {
+  return { settings, products, suppliers: [], clients: [], orders: [], remitos: [], movements: [], imports: [], payments: [], adjustments: [] };
+}
+
+function applyCachedShop() {
+  try {
+    const raw = localStorage.getItem(SHOP_CACHE);
+    if (!raw) return;
+    const c = JSON.parse(raw) as { settings: Settings; products: Product[] };
+    if (c?.settings && Array.isArray(c.products)) apply(shopState({ ...defaultSettings, ...c.settings }, c.products));
+  } catch {
+    // Sin copia (navegación privada, datos borrados): se espera a la base.
+  }
+}
+
+function saveShopCache(settings: Settings, products: Product[]) {
+  try {
+    localStorage.setItem(SHOP_CACHE, JSON.stringify({ settings, products }));
+  } catch {
+    // Si no hay lugar, la próxima visita simplemente espera a la base.
+  }
+}
+
 async function loadShop() {
   const [catalog, local] = await Promise.all([fetchAll("shop_catalog", "created_at"), db().from("shop_settings").select("*").maybeSingle()]);
   if (local.error) throw local.error;
@@ -379,7 +405,9 @@ async function loadShop() {
     lowStock: Number(l.low_stock ?? defaultSettings.lowStock),
     pricesRequireLogin: !!l.prices_require_login,
   };
-  apply({ settings, products: catalog.map(shopProductFrom), suppliers: [], clients: [], orders: [], remitos: [], movements: [], imports: [], payments: [], adjustments: [] });
+  const products = catalog.map(shopProductFrom);
+  apply(shopState(settings, products));
+  saveShopCache(settings, products);
   useRemote.setState({ mode: "tienda" });
 }
 
@@ -618,6 +646,8 @@ export function startRemote() {
     if (applying || useRemote.getState().mode !== "duenos") return;
     enqueue(pick(prev), pick(next));
   });
+  // En la tienda se muestra la copia guardada mientras llega lo de la base. El panel espera a la base.
+  if (!window.location.pathname.startsWith("/admin")) applyCachedShop();
   void refresh();
 }
 
