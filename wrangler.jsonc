@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "almaymoda",
+  // Cuenta de Cloudflare de Alma y Moda (administracion.almaymoda). Si la sesión de wrangler está
+  // en otra cuenta (por ejemplo Castelli), el deploy falla en lugar de publicar en el lugar equivocado.
+  "account_id": "5693316b9318f142e686fb4ed792b176",
+  "compatibility_date": "2026-11-01",
+  // Sitio 100 % estático: lo arma `next build` con STATIC_EXPORT=true en la carpeta out/.
+  // Se publica con `npm run deploy` (ver scripts/deploy.mjs). No hay Worker propio.
+  "assets": {
+    "directory": "./out",
+    // /admin/productos sirve out/admin/productos.html
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  },
+  // Dirección de prueba almaymoda.<cuenta>.workers.dev, hasta que esté el dominio propio
+  "workers_dev": true,
+  "preview_urls": false
+}

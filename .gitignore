@@ -52,3 +52,6 @@ skills-lock.json
 
 # Datos reales del cliente (base de Jaque, inventario, clientes): nunca al repo
 /archivos/
+
+# wrangler (Cloudflare)
+.wrangler/
