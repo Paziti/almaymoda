@@ -23,6 +23,8 @@ import {
   EyeIcon,
   EyeSlashIcon,
   ArrowSquareOutIcon,
+  WalletIcon,
+  BankIcon,
   type Icon,
 } from "@phosphor-icons/react";
 import { useDB, useHydrated } from "@/lib/store";
@@ -49,6 +51,13 @@ const NAV: { group: string; items: NavItem[] }[] = [
       { href: "/admin", label: "Inicio", icon: HouseIcon, exact: true, keywords: "resumen hoy" },
       { href: "/admin/pedidos", label: "Pedidos web", icon: ChatCircleTextIcon, keywords: "whatsapp tienda" },
       { href: "/admin/remitos", label: "Remitos", icon: ReceiptIcon, keywords: "ventas pdf" },
+    ],
+  },
+  {
+    group: "Cobranzas",
+    items: [
+      { href: "/admin/cuentas", label: "Cuentas corrientes", icon: WalletIcon, keywords: "deudas saldo fichero cobrar pagos fiado" },
+      { href: "/admin/cheques", label: "Cheques", icon: BankIcon, keywords: "diferidos cartera banco" },
     ],
   },
   {

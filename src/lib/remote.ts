@@ -16,7 +16,8 @@ import { REMOTE, supabase, PHOTO_BUCKET } from "./supabase";
 import { useDB, type DBState } from "./store";
 import { defaultSettings } from "./seed";
 import { uid } from "./format";
-import type { Client, ImportRecord, LineItem, Order, Product, Remito, Settings, StockMovement, Supplier, Variant } from "./types";
+import type { AccountAdjustment, Client, ImportRecord, LineItem, Order, Payment, Product, Remito, Settings, StockMovement, Supplier, Variant } from "./types";
+import { dayFromISO, dayToISO } from "./cuentas";
 
 /* ───────────── Estado de la conexión ───────────── */
 
@@ -220,6 +221,7 @@ const remitoFrom = (r: Row): Remito => ({
   discount: Number(r.discount ?? 0),
   priceList: (r.price_list as Remito["priceList"]) ?? "mayorista",
   status: r.status as Remito["status"],
+  dueDate: r.due_date ? dayFromISO(str(r.due_date)) : null,
   stockDiscounted: !!r.stock_discounted,
   orderId: (r.order_id as string) ?? null,
   demo: !!r.demo,
@@ -235,10 +237,70 @@ const remitoTo = (r: Remito): Row => ({
   discount: r.discount,
   price_list: r.priceList ?? "mayorista",
   status: r.status,
+  due_date: r.dueDate ? dayToISO(r.dueDate) : null,
   stock_discounted: r.stockDiscounted,
   order_id: r.orderId,
   demo: !!r.demo,
   created_at: iso(r.createdAt),
+});
+
+const paymentFrom = (r: Row): Payment => ({
+  id: str(r.id),
+  clientId: str(r.client_id),
+  at: dayFromISO(str(r.at)),
+  amount: Number(r.amount),
+  method: r.method as Payment["method"],
+  notes: str(r.notes),
+  remitoId: (r.remito_id as string) ?? null,
+  cheque:
+    r.method === "cheque"
+      ? {
+          bank: str(r.cheque_bank),
+          number: str(r.cheque_number),
+          owner: str(r.cheque_owner),
+          due: r.cheque_due ? dayFromISO(str(r.cheque_due)) : dayFromISO(str(r.at)),
+          status: (r.cheque_status as NonNullable<Payment["cheque"]>["status"]) ?? "cartera",
+        }
+      : undefined,
+  createdAt: ms(r.created_at),
+  demo: !!r.demo,
+});
+
+const paymentTo = (p: Payment): Row => ({
+  id: p.id,
+  client_id: p.clientId,
+  at: dayToISO(p.at),
+  amount: p.amount,
+  method: p.method,
+  notes: p.notes,
+  remito_id: p.remitoId,
+  cheque_bank: p.cheque?.bank ?? null,
+  cheque_number: p.cheque?.number ?? null,
+  cheque_owner: p.cheque?.owner ?? null,
+  cheque_due: p.cheque ? dayToISO(p.cheque.due) : null,
+  cheque_status: p.cheque?.status ?? null,
+  demo: !!p.demo,
+  created_at: iso(p.createdAt),
+});
+
+const adjustmentFrom = (r: Row): AccountAdjustment => ({
+  id: str(r.id),
+  clientId: str(r.client_id),
+  at: dayFromISO(str(r.at)),
+  amount: Number(r.amount),
+  reason: str(r.reason),
+  createdAt: ms(r.created_at),
+  demo: !!r.demo,
+});
+
+const adjustmentTo = (a: AccountAdjustment): Row => ({
+  id: a.id,
+  client_id: a.clientId,
+  at: dayToISO(a.at),
+  amount: a.amount,
+  reason: a.reason,
+  demo: !!a.demo,
+  created_at: iso(a.createdAt),
 });
 
 const movementFrom = (r: Row): StockMovement => ({
@@ -317,12 +379,12 @@ async function loadShop() {
     lowStock: Number(l.low_stock ?? defaultSettings.lowStock),
     pricesRequireLogin: !!l.prices_require_login,
   };
-  apply({ settings, products: catalog.map(shopProductFrom), suppliers: [], clients: [], orders: [], remitos: [], movements: [], imports: [] });
+  apply({ settings, products: catalog.map(shopProductFrom), suppliers: [], clients: [], orders: [], remitos: [], movements: [], imports: [], payments: [], adjustments: [] });
   useRemote.setState({ mode: "tienda" });
 }
 
 async function loadOwner() {
-  const [settingsRow, products, variants, suppliers, clients, orders, remitos, movements, imports] = await Promise.all([
+  const [settingsRow, products, variants, suppliers, clients, orders, remitos, movements, imports, payments, adjustments] = await Promise.all([
     db().from("settings").select("data").eq("id", 1).maybeSingle(),
     fetchAll("products", "created_at", false),
     fetchAll("variants", "position"),
@@ -332,6 +394,8 @@ async function loadOwner() {
     fetchAll("remitos", "created_at", false),
     fetchAll("stock_movements", "at", false, 2000),
     fetchAll("imports", "at", false, 100),
+    fetchAll("payments", "at", false),
+    fetchAll("account_adjustments", "at", false),
   ]);
   if (settingsRow.error) throw settingsRow.error;
   const byProduct = new Map<string, Row[]>();
@@ -348,6 +412,8 @@ async function loadOwner() {
     remitos: remitos.map(remitoFrom),
     movements: movements.map(movementFrom),
     imports: imports.map(importFrom),
+    payments: payments.map(paymentFrom),
+    adjustments: adjustments.map(adjustmentFrom),
   });
   useRemote.setState({ mode: "duenos" });
 }
@@ -450,6 +516,8 @@ async function writeDiff(prev: DBState, next: DBState) {
   const remitos = diff(prev.remitos, next.remitos);
   const imports = diff(prev.imports, next.imports);
   const movements = diff(prev.movements, next.movements);
+  const payments = diff(prev.payments, next.payments);
+  const adjustments = diff(prev.adjustments, next.adjustments);
 
   // Altas y cambios, respetando qué tabla apunta a cuál.
   await upsert("suppliers", suppliers.changed, supplierTo);
@@ -458,6 +526,8 @@ async function writeDiff(prev: DBState, next: DBState) {
   await upsert("remitos", remitos.changed.map((r) => ({ ...r, orderId: r.orderId && next.orders.some((o) => o.id === r.orderId) ? r.orderId : null })), remitoTo);
   await upsert("orders", orders.changed, orderTo);
   await upsert("imports", imports.changed, importTo);
+  await upsert("payments", payments.changed, paymentTo);
+  await upsert("account_adjustments", adjustments.changed, adjustmentTo);
   if (movements.added.length) {
     const known = new Set(next.products.flatMap((p) => p.variants.map((v) => v.id)));
     const rows = movements.added
@@ -467,6 +537,8 @@ async function writeDiff(prev: DBState, next: DBState) {
   }
 
   // Bajas: primero lo que depende de otras tablas.
+  await remove("payments", payments.removed);
+  await remove("account_adjustments", adjustments.removed);
   await remove("remitos", remitos.removed);
   await remove("orders", orders.removed);
   await remove("clients", clients.removed);
@@ -484,6 +556,8 @@ const pick = (s: DBState): DBState => ({
   remitos: s.remitos,
   movements: s.movements,
   imports: s.imports,
+  payments: s.payments,
+  adjustments: s.adjustments,
 });
 
 let queue: Promise<void> = Promise.resolve();

@@ -5,8 +5,10 @@ import { createJSONStorage, persist, type StateStorage } from "zustand/middlewar
 import { del, get, set } from "idb-keyval";
 import { useSyncExternalStore } from "react";
 import type {
+  AccountAdjustment,
   Client,
   ImportRecord,
+  Payment,
   LineItem,
   Order,
   OrderStatus,
@@ -41,6 +43,8 @@ export interface DBState {
   remitos: Remito[];
   movements: StockMovement[];
   imports: ImportRecord[];
+  payments: Payment[];
+  adjustments: AccountAdjustment[];
 }
 
 export interface ImportChange {
@@ -63,6 +67,10 @@ interface Actions {
   applyImport: (changes: ImportChange[], stockMode: "none" | "add" | "replace", record: Omit<ImportRecord, "id" | "at">) => void;
   saveSupplier: (s: Supplier) => void;
   deleteSupplier: (id: string) => void;
+  savePayment: (p: Payment) => void;
+  deletePayment: (id: string) => void;
+  saveAdjustment: (a: AccountAdjustment) => void;
+  deleteAdjustment: (id: string) => void;
   saveClient: (c: Client) => void;
   deleteClient: (id: string) => void;
   createOrder: (o: Omit<Order, "id" | "number" | "createdAt" | "status" | "remitoId">) => Order;
@@ -86,11 +94,13 @@ function initialDB(): DBState {
     remitos: [],
     movements: [],
     imports: [],
+    payments: [],
+    adjustments: [],
   };
 }
 
 function emptyDB(settings: Settings): DBState {
-  return { settings, products: [], suppliers: [], clients: [], orders: [], remitos: [], movements: [], imports: [] };
+  return { settings, products: [], suppliers: [], clients: [], orders: [], remitos: [], movements: [], imports: [], payments: [], adjustments: [] };
 }
 
 function applyStockToItems(products: Product[], items: LineItem[], sign: 1 | -1, reason: string, movements: StockMovement[]) {
@@ -237,12 +247,31 @@ export const useDB = create<DBState & Actions>()(
           products: s.products.map((p) => (p.supplierId === id ? { ...p, supplierId: null } : p)),
         })),
 
+      savePayment: (p) =>
+        setState((s) => ({
+          payments: s.payments.some((x) => x.id === p.id) ? s.payments.map((x) => (x.id === p.id ? p : x)) : [p, ...s.payments],
+        })),
+
+      deletePayment: (id) => setState((s) => ({ payments: s.payments.filter((x) => x.id !== id) })),
+
+      saveAdjustment: (a) =>
+        setState((s) => ({
+          adjustments: s.adjustments.some((x) => x.id === a.id) ? s.adjustments.map((x) => (x.id === a.id ? a : x)) : [a, ...s.adjustments],
+        })),
+
+      deleteAdjustment: (id) => setState((s) => ({ adjustments: s.adjustments.filter((x) => x.id !== id) })),
+
       saveClient: (c) =>
         setState((s) => ({
           clients: s.clients.some((x) => x.id === c.id) ? s.clients.map((x) => (x.id === c.id ? c : x)) : [c, ...s.clients],
         })),
 
-      deleteClient: (id) => setState((s) => ({ clients: s.clients.filter((x) => x.id !== id) })),
+      deleteClient: (id) =>
+        setState((s) => ({
+          clients: s.clients.filter((x) => x.id !== id),
+          payments: s.payments.filter((x) => x.clientId !== id),
+          adjustments: s.adjustments.filter((x) => x.clientId !== id),
+        })),
 
       createOrder: (o) => {
         const s = getState();
@@ -304,6 +333,8 @@ export const useDB = create<DBState & Actions>()(
           clients: s.clients.filter((x) => !x.demo),
           orders: s.orders.filter((x) => !x.demo),
           remitos: s.remitos.filter((x) => !x.demo),
+          payments: s.payments.filter((x) => !x.demo),
+          adjustments: s.adjustments.filter((x) => !x.demo),
           movements: s.movements.filter((m) => !m.productId.startsWith("p-demo")),
         })),
 
@@ -339,6 +370,8 @@ export const useDB = create<DBState & Actions>()(
         remitos: s.remitos,
         movements: s.movements,
         imports: s.imports,
+        payments: s.payments,
+        adjustments: s.adjustments,
       }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<DBState>;
@@ -411,5 +444,7 @@ export function exportDB(): DBState {
     remitos: s.remitos,
     movements: s.movements,
     imports: s.imports,
+    payments: s.payments,
+    adjustments: s.adjustments,
   };
 }

@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { MagnifyingGlassIcon, TrashIcon, PlusIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
 import { variantLabel } from "@/lib/labels";
-import { fmtMoney, parseNumber, uid } from "@/lib/format";
+import { fmtDate, fmtMoney, parseNumber, uid } from "@/lib/format";
 import { findExact, looksLikeBarcode, searchProducts } from "@/lib/barcode";
 import { totalStock } from "@/lib/pricing";
 import { useListPricer } from "@/lib/hooks";
@@ -15,6 +15,8 @@ import type { Client, LineItem, PriceList, Product } from "@/lib/types";
 import { Button, Field, IconButton, Input, Panel, Segmented, Select, Spinner, Stepper, Switch, Textarea } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
+import { PaymentFields, draftToPayment, emptyDraft } from "@/components/admin/cobro";
+import { addDays, startOfDay } from "@/lib/cuentas";
 
 type Line = LineItem & { key: string };
 
@@ -55,6 +57,11 @@ function Builder() {
   const [discountStock, setDiscountStock] = useState(true);
   const [free, setFree] = useState({ name: "", qty: "1", price: "" });
   const [error, setError] = useState("");
+  // Cobro: contado, todo a cuenta corriente, o una parte ahora y el resto a cuenta.
+  const [cobro, setCobro] = useState<"contado" | "cuenta" | "parcial">("contado");
+  const [daysText, setDaysText] = useState("20");
+  const [pay, setPay] = useState(emptyDraft);
+  const savePayment = useDB((s) => s.savePayment);
 
   const results = useMemo(() => searchProducts(products, q), [q, products]);
 
@@ -124,12 +131,20 @@ function Builder() {
 
   const discount = Math.min(100, Math.max(0, parseNumber(discountText) ?? 0));
   const { subtotal, units, discountAmount, total } = remitoTotals({ items: lines, discount });
+  const dueDays = Math.max(0, Math.round(parseNumber(daysText) ?? 0));
 
   const submit = () => {
     // En el local muchas veces no se pide el nombre.
     const name = customer.name.trim() || (priceList === "minorista" ? WALK_IN : "");
     if (!name) return setError("Poné el nombre del cliente.");
     if (!lines.length) return setError("Agregá al menos un artículo.");
+    const willHaveClient = !!clientId || (saveAsClient && name !== WALK_IN);
+    if (cobro !== "contado" && !willHaveClient) return setError("Para dejar saldo en cuenta corriente, elegí la clienta o dejá prendido «Guardar como cliente».");
+    const paidNow = cobro === "contado" ? total : cobro === "parcial" ? (parseNumber(pay.amount) ?? 0) : 0;
+    if (cobro === "parcial" && !(paidNow > 0 && paidNow < total)) return setError("En pago parcial, lo que paga ahora tiene que ser más que cero y menos que el total.");
+    // Se valida el pago antes de emitir, para no dejar un remito a medias.
+    const check = paidNow > 0 ? draftToPayment(pay, "x", { amount: paidNow }) : null;
+    if (typeof check === "string") return setError(check);
     setError("");
     let cid: string | null = clientId || null;
     if (!cid && saveAsClient && name !== WALK_IN) {
@@ -146,9 +161,14 @@ function Builder() {
         discount,
         priceList,
         orderId: order?.id ?? null,
+        dueDate: cobro === "contado" ? null : addDays(startOfDay(), dueDays),
       },
       discountStock,
     );
+    if (cid && paidNow > 0) {
+      const p = draftToPayment(pay, cid, { amount: paidNow, remitoId: remito.id });
+      if (typeof p !== "string") savePayment(p);
+    }
     toast.success(`Remito N° ${remito.number} generado`);
     router.replace(`/admin/remitos/ver?id=${remito.id}`);
   };
@@ -374,6 +394,44 @@ function Builder() {
               <Textarea id="r-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </Field>
             <Switch checked={discountStock} onChange={setDiscountStock} label="Descontar del stock" description="Si se anula el remito, el stock vuelve" />
+          </Panel>
+
+          <Panel className="flex flex-col gap-4 p-5">
+            <h2 className="font-semibold">Cobro</h2>
+            <Segmented
+              label="Cómo paga"
+              value={cobro}
+              onChange={setCobro}
+              options={[
+                { value: "contado", label: "Contado" },
+                { value: "cuenta", label: "Cuenta corriente" },
+                { value: "parcial", label: "Parcial" },
+              ]}
+            />
+            {cobro !== "contado" && (
+              <Field label={cobro === "parcial" ? "El resto vence en (días)" : "Vence en (días)"} htmlFor="r-days" hint={`Vence el ${fmtDate(addDays(startOfDay(), dueDays))}`}>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Input id="r-days" inputMode="numeric" className="num w-20" value={daysText} onChange={(e) => setDaysText(e.target.value.replace(/\D/g, ""))} />
+                  {[7, 15, 20, 30].map((d) => (
+                    <Button key={d} size="sm" variant={dueDays === d ? "primary" : "secondary"} onClick={() => setDaysText(String(d))}>
+                      {d}
+                    </Button>
+                  ))}
+                </div>
+              </Field>
+            )}
+            {cobro !== "cuenta" && (
+              <PaymentFields
+                idPrefix="rp"
+                value={cobro === "contado" ? { ...pay, amount: String(total) } : pay}
+                onChange={(d) => setPay(cobro === "contado" ? { ...d, amount: pay.amount } : d)}
+                showAmount={cobro === "parcial"}
+                showDate={false}
+              />
+            )}
+            {cobro === "parcial" && total > 0 && (parseNumber(pay.amount) ?? 0) > 0 && (
+              <p className="num text-sm text-gris">Queda a cuenta {fmtMoney(Math.max(0, total - (parseNumber(pay.amount) ?? 0)))}</p>
+            )}
             {error && (
               <p role="alert" className="text-sm font-semibold text-peligro">
                 {error}

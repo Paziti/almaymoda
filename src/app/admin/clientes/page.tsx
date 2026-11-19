@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PlusIcon, UsersIcon, WhatsappLogoIcon, MagnifyingGlassIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
-import { normalizeText, uid } from "@/lib/format";
+import { fmtMoney, normalizeText, uid } from "@/lib/format";
 import { whatsappUrl } from "@/lib/share";
+import { allAccounts } from "@/lib/cuentas";
 import type { Client } from "@/lib/types";
 import { Button, ButtonLink, ConfirmButton, Dialog, EmptyState, Field, Input, Panel, Spinner, Switch, Textarea, buttonClass } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
@@ -18,6 +20,9 @@ function Clientes() {
   const clients = useDB((s) => s.clients);
   const orders = useDB((s) => s.orders);
   const remitos = useDB((s) => s.remitos);
+  const payments = useDB((s) => s.payments);
+  const adjustments = useDB((s) => s.adjustments);
+  const balances = useMemo(() => new Map(allAccounts({ remitos, payments, adjustments }).map((a) => [a.clientId, a])), [remitos, payments, adjustments]);
   const saveClient = useDB((s) => s.saveClient);
   const deleteClient = useDB((s) => s.deleteClient);
   const [q, setQ] = useState("");
@@ -88,7 +93,16 @@ function Clientes() {
                         {[c.business, c.city, c.phone].filter(Boolean).join(" · ") || "Sin datos de contacto"} · {nOrders} pedidos · {nRemitos} remitos
                       </span>
                     </button>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const a = balances.get(c.id);
+                        if (!a || a.balance === 0) return null;
+                        return (
+                          <Link href={`/admin/cuentas/cliente?id=${c.id}`} className={buttonClass(a.overdue > 0 ? "danger" : "secondary", "sm", "num min-h-11")}>
+                            {a.balance > 0 ? `Debe ${fmtMoney(a.balance)}` : `A favor ${fmtMoney(-a.balance)}`}
+                          </Link>
+                        );
+                      })()}
                       {c.phone && (
                         <a href={whatsappUrl(c.phone, `Hola ${c.name}!`)} target="_blank" rel="noreferrer" aria-label={`WhatsApp a ${c.name}`} className={buttonClass("secondary", "sm", "min-h-11 min-w-11")}>
                           <WhatsappLogoIcon size={18} />

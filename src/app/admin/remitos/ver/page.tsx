@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 
@@ -20,6 +21,7 @@ export default function RemitoPage() {
   const remito = useDB((s) => s.remitos.find((r) => r.id === id));
   const settings = useDB((s) => s.settings);
   const setStatus = useDB((s) => s.setRemitoStatus);
+  const payments = useDB((s) => s.payments);
   // El PDF se regenera cuando cambia el remito o los datos del local; se guarda junto a lo que lo originó.
   const [pdf, setPdf] = useState<{ source: unknown; url?: string; blob?: Blob; error?: boolean } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -58,6 +60,7 @@ export default function RemitoPage() {
 
   const number = remitoNumber(settings.pointOfSale, remito.number);
   const { total, units, subtotal, discountAmount } = remitoTotals(remito);
+  const paidHere = payments.filter((p) => p.remitoId === remito.id).reduce((a, p) => a + p.amount, 0);
   const msg = remitoMessage(remito, settings);
   const fileName = remitoFileName(remito, settings);
 
@@ -169,6 +172,22 @@ export default function RemitoPage() {
               <span className="font-semibold">Total</span>
               <span className="num font-display text-3xl">{fmtMoney(total)}</span>
             </div>
+            {paidHere > 0 && (
+              <div className="flex justify-between">
+                <span className="text-gris">Cobrado al emitir</span>
+                <span className="num">{fmtMoney(paidHere)}</span>
+              </div>
+            )}
+            {remito.dueDate && total - paidHere > 0 && (
+              <p className="font-semibold">
+                {fmtMoney(total - paidHere)} a cuenta corriente, vence el {fmtDate(remito.dueDate)}.
+              </p>
+            )}
+            {remito.clientId && (remito.dueDate || paidHere > 0) && (
+              <Link href={`/admin/cuentas/cliente?id=${remito.clientId}`} className="w-fit font-semibold text-acento underline underline-offset-2">
+                Ver cuenta corriente
+              </Link>
+            )}
             <p className="text-gris">{remito.stockDiscounted ? "El stock ya se descontó." : "Este remito no movió stock."}</p>
           </Panel>
           {remito.status !== "anulado" && (

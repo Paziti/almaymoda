@@ -126,8 +126,51 @@ export interface Remito {
   /** Ausente en remitos viejos = mayorista. */
   priceList?: PriceList;
   status: RemitoStatus;
+  /** Vencimiento del pago (inicio del día). null o ausente = contado. */
+  dueDate?: number | null;
   stockDiscounted: boolean;
   orderId: ID | null;
+  demo?: boolean;
+}
+
+export type PaymentMethod = "efectivo" | "transferencia" | "mercadopago" | "cheque" | "otro";
+
+export type ChequeStatus = "cartera" | "depositado" | "cobrado" | "rechazado";
+
+export interface Cheque {
+  bank: string;
+  number: string;
+  /** Quién firma el cheque (puede no ser la clienta). */
+  owner: string;
+  /** Fecha desde la que se puede cobrar (inicio del día). */
+  due: number;
+  status: ChequeStatus;
+}
+
+/** Lo que paga una clienta: baja su saldo de cuenta corriente. */
+export interface Payment {
+  id: ID;
+  clientId: ID;
+  /** Fecha del pago (inicio del día). */
+  at: number;
+  amount: number;
+  method: PaymentMethod;
+  notes: string;
+  /** Remito con el que se cobró, si se cobró al emitirlo. */
+  remitoId: ID | null;
+  cheque?: Cheque;
+  createdAt: number;
+  demo?: boolean;
+}
+
+/** Saldo anterior (del fichero) o ajuste a mano. Positivo = debe; negativo = a favor. */
+export interface AccountAdjustment {
+  id: ID;
+  clientId: ID;
+  at: number;
+  amount: number;
+  reason: string;
+  createdAt: number;
   demo?: boolean;
 }
 
