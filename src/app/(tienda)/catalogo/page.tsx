@@ -4,8 +4,9 @@ import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
-import { useCatalogo, useLocal, usePrecio, normalizeText, totalStock } from "@/lib/tienda";
-import { Button, EmptyState, Input, Select, Spinner, Switch } from "@/components/comun/ui";
+import { useCatalogo, useEstadoCatalogo, useLocal, usePrecio, normalizeText, totalStock } from "@/lib/tienda";
+import { CatalogoVacio, ErrorCatalogo, GrillaCargando } from "@/components/tienda/estado-catalogo";
+import { Button, EmptyState, Input, Select, Switch } from "@/components/comun/ui";
 import { ProductCard } from "@/components/tienda/product-card";
 
 type Sort = "nuevos" | "precio-asc" | "precio-desc" | "nombre";
@@ -15,6 +16,7 @@ function Catalogo() {
   const visible = useCatalogo();
   const settings = useLocal();
   const pricer = usePrecio();
+  const estado = useEstadoCatalogo();
 
   // Los filtros viven en la URL: un link compartido o el botón "atrás" muestran lo mismo.
   const cat = params.get("cat") ?? "";
@@ -66,14 +68,18 @@ function Catalogo() {
   })();
 
   const filtered = !!(q || cat || size);
+  // Si sólo coinciden artículos agotados, se avisa en lugar de decir que no hay nada.
+  const agotadosQueCoinciden = onlyStock && !list.length ? visible.filter((p) => totalStock(p) <= 0 && (!cat || p.category === cat) && (!nq || normalizeText(`${p.name} ${p.code} ${p.category} ${p.variants.map((v) => v.color).join(" ")}`).includes(nq))).length : 0;
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-8 pt-8 md:pt-12">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2 border-b border-tinta pb-4">
         <h1 className="font-display text-[clamp(2.25rem,7vw,4rem)] leading-[0.95] tracking-[-0.02em]">{cat || "Catálogo"}</h1>
-        <p className="num pb-2 text-gris">{list.length === 1 ? "1 artículo" : `${list.length} artículos`}</p>
+        {estado === "listo" && visible.length > 0 && <p className="num pb-2 text-gris">{list.length === 1 ? "1 artículo" : `${list.length} artículos`}</p>}
       </div>
 
+      {/* Sin artículos publicados, buscador y filtros no tienen nada que filtrar */}
+      {estado !== "error" && !(estado === "listo" && visible.length === 0) && (
       <div className="flex flex-col gap-4">
         <div className="relative">
           <MagnifyingGlassIcon size={20} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gris" />
@@ -117,15 +123,31 @@ function Catalogo() {
           </div>
         </div>
       </div>
+      )}
 
-      {list.length ? (
+      {estado === "cargando" ? (
+        <GrillaCargando n={8} />
+      ) : estado === "error" ? (
+        <ErrorCatalogo />
+      ) : list.length ? (
         <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
           {list.map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
       ) : visible.length === 0 ? (
-        <EmptyState title="Todavía no hay artículos publicados">Los dueños los cargan desde el panel.</EmptyState>
+        <CatalogoVacio />
+      ) : agotadosQueCoinciden > 0 ? (
+        <EmptyState
+          title={agotadosQueCoinciden === 1 ? "Hay 1 artículo, pero está agotado" : `Hay ${agotadosQueCoinciden} artículos, pero están agotados`}
+          action={
+            <Button variant="secondary" onClick={() => setOnlyStock(false)}>
+              Mostrar los agotados
+            </Button>
+          }
+        >
+          Podés verlos igual y consultarnos cuándo vuelven.
+        </EmptyState>
       ) : (
         <EmptyState
           title="No encontramos artículos"
@@ -152,7 +174,7 @@ function Catalogo() {
 
 export default function Page() {
   return (
-    <Suspense fallback={<Spinner />}>
+    <Suspense fallback={<GrillaCargando n={8} className="mx-auto grid max-w-6xl grid-cols-2 gap-x-4 gap-y-10 px-4 pt-32 md:grid-cols-3 lg:grid-cols-4" />}>
       <Catalogo />
     </Suspense>
   );

@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { TrashIcon, WhatsappLogoIcon, CheckCircleIcon } from "@phosphor-icons/react";
-import { useCarrito, useCatalogo, useClienta, usePedir, useLocal, usePrecio, useVerPrecios, fmtMoney, variantLabel, whatsappUrl, type LineItem, type Order } from "@/lib/tienda";
+import { useCarrito, useCatalogo, useClienta, useEstadoCatalogo, usePedir, useLocal, usePrecio, useVerPrecios, fmtMoney, variantLabel, whatsappUrl, type LineItem, type Order } from "@/lib/tienda";
 import { Button, ButtonLink, EmptyState, Field, IconButton, Input, Panel, Stepper, Textarea } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
+import { ErrorCatalogo } from "@/components/tienda/estado-catalogo";
 
 export default function PedidoPage() {
   const { cart, setQty, clearCart } = useCarrito();
@@ -15,6 +16,7 @@ export default function PedidoPage() {
   const pedir = usePedir();
   const pricer = usePrecio();
   const showPrice = useVerPrecios();
+  const estado = useEstadoCatalogo();
 
   const [form, setForm] = useState({ name: me?.name ?? "", phone: me?.phone ?? "", business: me?.business ?? "", city: me?.city ?? "", notes: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -55,6 +57,19 @@ export default function PedidoPage() {
       </div>
     );
   }
+
+  // Con artículos en el carrito pero el catálogo todavía en camino, se espera en lugar de decir "vacío".
+  if (!lines.length && cart.length && estado === "cargando") {
+    return (
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8" role="status" aria-label="Cargando tu pedido">
+        <div className="h-14 w-56 animate-pulse rounded-[3px] bg-[var(--foto)]" aria-hidden />
+        {Array.from({ length: Math.min(cart.length, 3) }, (_, i) => (
+          <div key={i} className="h-28 animate-pulse rounded-[4px] bg-[var(--foto)]" aria-hidden />
+        ))}
+      </div>
+    );
+  }
+  if (!lines.length && cart.length && estado === "error") return <ErrorCatalogo />;
 
   if (!lines.length) {
     return (

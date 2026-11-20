@@ -129,7 +129,7 @@ export default function CuentasPage() {
                         ) : a.nextDue ? (
                           <span className="text-sm text-gris">Vence {fmtDate(a.nextDue)}</span>
                         ) : (
-                          <span className="text-sm text-gris">—</span>
+                          <span className="text-sm text-gris">Sin vencimientos</span>
                         )}
                       </span>
                       <span className="hidden text-right text-sm text-gris md:block">{a.lastPayment ? `${fmtDate(a.lastPayment.at)} · ${fmtMoney(a.lastPayment.amount)}` : "Sin pagos"}</span>

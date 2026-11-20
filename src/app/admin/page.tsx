@@ -125,7 +125,8 @@ export default function AdminHome() {
       </div>
 
       <div className={`${pagePad} grid gap-6 lg:grid-cols-3`}>
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        {/* min-w-0: sin esto las columnas de la grilla crecen con los textos largos y la página se sale de la pantalla en el celular */}
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <Section title="Pedidos web sin atender" href="/admin/pedidos">
             {pending.length ? (
               <ul className="divide-y divide-linea">
@@ -134,7 +135,8 @@ export default function AdminHome() {
                   const u = o.items.reduce((a, i) => a + i.qty, 0);
                   return (
                     <li key={o.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3">
-                      <div className="min-w-0 flex-1">
+                      {/* En el celular el nombre va en su propia línea; total y botón quedan debajo */}
+                      <div className="min-w-0 flex-1 max-sm:basis-full">
                         <p className="truncate font-semibold">
                           <span className="num text-gris">N° {o.number}</span> {o.customer.name}
                           {o.customer.business && <span className="font-normal text-gris">, {o.customer.business}</span>}
@@ -143,7 +145,7 @@ export default function AdminHome() {
                           {fmtDateTime(o.createdAt)}, {u} u.
                         </p>
                       </div>
-                      <span className="num font-semibold">{fmtMoney(total)}</span>
+                      <span className="num font-semibold max-sm:mr-auto">{fmtMoney(total)}</span>
                       <ButtonLink href={`/admin/remitos/nuevo?pedido=${o.id}`} size="sm" variant="secondary">
                         Armar remito
                       </ButtonLink>
@@ -165,10 +167,11 @@ export default function AdminHome() {
                     <li key={r.id}>
                       <Link href={`/admin/remitos/ver?id=${r.id}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 hover:bg-piedra/40">
                         <span className="num w-16 shrink-0 text-sm text-gris">N° {r.number}</span>
-                        <span className="min-w-0 flex-1 truncate font-medium">{r.customer.name || "Sin cliente"}</span>
+                        <span className="min-w-0 flex-1 truncate font-medium max-sm:basis-[calc(100%-5rem)]">{r.customer.name || "Sin cliente"}</span>
+                        {/* En el celular: número y cliente arriba; fecha, estado e importe en la línea de abajo */}
                         <span className="text-sm text-gris">{fmtDate(r.createdAt)}</span>
                         <Badge tone={st.tone}>{st.label}</Badge>
-                        <span className="num w-28 text-right font-semibold">{fmtMoney(remitoTotals(r).total)}</span>
+                        <span className="num text-right font-semibold max-sm:ml-auto sm:w-28">{fmtMoney(remitoTotals(r).total)}</span>
                       </Link>
                     </li>
                   );
@@ -185,7 +188,7 @@ export default function AdminHome() {
           </Section>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <Section title="Para reponer" href="/admin/productos?estado=bajo">
             {restock.length ? (
               <ul className="divide-y divide-linea">

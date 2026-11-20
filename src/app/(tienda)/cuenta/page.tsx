@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SignOutIcon } from "@phosphor-icons/react";
-import { useClienta, fmtDate, fmtMoney, variantLabel, type OrderStatus } from "@/lib/tienda";
+import { HISTORIAL_PEDIDOS, useClienta, fmtDate, fmtMoney, variantLabel, type OrderStatus } from "@/lib/tienda";
 import { Badge, Button, ButtonLink, EmptyState, Field, Input, Panel } from "@/components/comun/ui";
 
 const statusTone: Record<OrderStatus, { label: string; tone: "acento" | "ok" | "neutral" | "peligro" }> = {
@@ -33,6 +33,15 @@ export default function CuentaPage() {
             <SignOutIcon size={18} /> Salir
           </Button>
         </div>
+        {!HISTORIAL_PEDIDOS && (
+          <Panel as="div" className="flex flex-col gap-3 p-5">
+            <p>Tus datos quedan guardados en este celular: en el próximo pedido ya aparecen completos.</p>
+            <ButtonLink href="/catalogo" className="w-fit">
+              Ver el catálogo
+            </ButtonLink>
+          </Panel>
+        )}
+        {HISTORIAL_PEDIDOS && (
         <section aria-labelledby="t-orders" className="flex flex-col gap-3">
           <h2 id="t-orders" className="border-t border-tinta pt-4 font-display text-3xl">
             Mis pedidos
@@ -71,6 +80,7 @@ export default function CuentaPage() {
             </Panel>
           )}
         </section>
+        )}
       </div>
     );
   }
@@ -81,7 +91,9 @@ export default function CuentaPage() {
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-12">
       <div>
         <h1 className="font-display text-[clamp(3rem,10vw,5rem)] leading-[0.9] tracking-[-0.02em]">Mi cuenta</h1>
-        <p className="mt-2 text-gris">Ingresá con tu teléfono para ver tus pedidos y que tus datos queden cargados.</p>
+        <p className="mt-2 text-gris">
+          {HISTORIAL_PEDIDOS ? "Ingresá con tu teléfono para ver tus pedidos y que tus datos queden cargados." : "Dejá tus datos una vez y en cada pedido ya aparecen completos."}
+        </p>
       </div>
       <Panel as="div" className="p-5">
         {step === "phone" ? (
@@ -142,7 +154,7 @@ export default function CuentaPage() {
           </form>
         )}
       </Panel>
-      <p className="text-sm text-gris">En esta versión de prueba la cuenta queda guardada en este dispositivo.</p>
+      <p className="text-sm text-gris">Tus datos quedan guardados sólo en este dispositivo.</p>
     </div>
   );
 }

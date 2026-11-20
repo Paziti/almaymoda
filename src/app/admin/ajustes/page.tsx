@@ -152,7 +152,13 @@ export default function AjustesPage() {
                 <Input id="s-low" inputMode="numeric" className="num" value={form.lowStock} onChange={(e) => set("lowStock", parseInt(e.target.value.replace(/\D/g, "") || "0", 10))} />
               </Field>
             </div>
-            <Switch checked={form.pricesRequireLogin} onChange={(v) => set("pricesRequireLogin", v)} label="Precios sólo para clientes" description="Quien no ingresó con su teléfono ve el catálogo sin precios" />
+            <Switch checked={form.pricesRequireLogin} onChange={(v) => set("pricesRequireLogin", v)} label="Precios sólo para clientes"
+              description={
+                REMOTE
+                  ? "Pide el teléfono antes de mostrar precios. Todavía no se verifica el número, así que no sirve para ocultarlos de verdad: es un paso para conocer a quién compra."
+                  : "Quien no ingresó con su teléfono ve el catálogo sin precios"
+              }
+            />
           </Panel>
 
           <Panel className="flex flex-col gap-4 p-5">

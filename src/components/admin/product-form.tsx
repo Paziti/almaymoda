@@ -406,7 +406,7 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
                             <input
                               aria-label={`Stock ${c} ${s}`}
                               inputMode="numeric"
-                              className="num h-11 w-full min-w-16 rounded-lg border border-linea-fuerte bg-papel text-center font-semibold focus:border-acento focus:outline-none"
+                              className="num h-11 w-full min-w-16 rounded-lg border border-campo bg-papel text-center font-semibold focus:border-acento focus:outline-none"
                               value={stock[key(c, s)] ?? 0}
                               onFocus={(e) => e.currentTarget.select()}
                               onChange={(e) => setStock({ ...stock, [key(c, s)]: parseInt(e.target.value.replace(/\D/g, "") || "0", 10) })}

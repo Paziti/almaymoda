@@ -94,7 +94,7 @@ export function CategoriasHover({ categories }: { categories: CategoriaVista[] }
       </ul>
 
       {actual && <Titular className="flex lg:hidden" text={actual.name} sub={`${cuenta(actual.count)} · tocá la foto para verlos`} accent />}
-      <Titular className="hidden lg:flex" text={hover?.name ?? "Categorías"} sub={hover ? `${cuenta(hover.count)} · hacé clic para verlos` : "Pasá por una foto para elegir"} accent={!!hover} />
+      <Titular className="hidden lg:flex" text={hover?.name ?? "Categorías"} sub={hover ? `${cuenta(hover.count)} · entrá para verlos` : "Elegí una categoría"} accent={!!hover} />
     </section>
   );
 }

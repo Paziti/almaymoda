@@ -3,7 +3,9 @@ import type { PriceList, Product, Rounding, Settings, Supplier } from "./types";
 export function roundPrice(value: number, rounding: Rounding) {
   if (!Number.isFinite(value) || value <= 0) return 0;
   const step = rounding || 1;
-  return Math.ceil(value / step) * step;
+  // Primero a centavos: 3000 × 1,1 da 3300,0000000000005 en JavaScript y, sin esto, subiría a 3400.
+  const cents = Math.round(value * 100) / 100;
+  return Math.ceil(cents / step) * step;
 }
 
 export type CoefSource = "articulo" | "proveedor" | "general";

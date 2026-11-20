@@ -31,9 +31,11 @@ interface RemoteStatus {
   notOwner: boolean;
   /** Escrituras pendientes de terminar. */
   saving: number;
+  /** La última carga desde la base falló (sin conexión, base caída). */
+  error: boolean;
 }
 
-export const useRemote = create<RemoteStatus>(() => ({ mode: "cargando", email: null, notOwner: false, saving: 0 }));
+export const useRemote = create<RemoteStatus>(() => ({ mode: "cargando", email: null, notOwner: false, saving: 0, error: false }));
 
 /* ───────────── Conversión filas ↔ tipos ───────────── */
 
@@ -408,7 +410,7 @@ async function loadShop() {
   const products = catalog.map(shopProductFrom);
   apply(shopState(settings, products));
   saveShopCache(settings, products);
-  useRemote.setState({ mode: "tienda" });
+  useRemote.setState({ mode: "tienda", error: false });
 }
 
 async function loadOwner() {
@@ -443,7 +445,7 @@ async function loadOwner() {
     payments: payments.map(paymentFrom),
     adjustments: adjustments.map(adjustmentFrom),
   });
-  useRemote.setState({ mode: "duenos" });
+  useRemote.setState({ mode: "duenos", error: false });
 }
 
 /* ───────────── Escritura (sólo dueños) ───────────── */
@@ -609,16 +611,23 @@ async function refresh() {
     const user = data.session?.user ?? null;
     if (!user) {
       useRemote.setState({ email: null, notOwner: false });
-      return loadShop();
+      // await: sin él, si la carga falla, el error escapa del try y no se muestra el estado de error.
+      return await loadShop();
     }
     const owner = await db().from("owners").select("user_id").eq("user_id", user.id).maybeSingle();
     useRemote.setState({ email: user.email ?? null, notOwner: !owner.data });
-    return owner.data ? loadOwner() : loadShop();
+    return await (owner.data ? loadOwner() : loadShop());
   } catch (err) {
+    // La tienda y el panel muestran su propio estado de error con un botón para reintentar.
     console.error("[almaymoda] Error al cargar los datos", err);
-    toast.error("No se pudieron cargar los datos. Revisá la conexión y recargá la página.");
-    useDB.setState({ ready: true });
+    useRemote.setState({ error: true });
   }
+}
+
+/** Vuelve a intentar la carga después de un error. */
+export function retryRemote() {
+  useRemote.setState({ error: false });
+  return refresh();
 }
 
 export async function signIn(email: string, password: string) {

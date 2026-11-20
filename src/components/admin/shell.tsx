@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import clsx from "clsx";
 import {
   HouseIcon,
@@ -30,7 +30,7 @@ import {
 import { useDB, useHydrated } from "@/lib/store";
 import { adminAuth } from "@/lib/session";
 import { REMOTE } from "@/lib/supabase";
-import { signIn, signOut, useRemote } from "@/lib/remote";
+import { retryRemote, signIn, signOut, useRemote } from "@/lib/remote";
 import { Button, Field, Input, Spinner } from "@/components/comun/ui";
 import { ThemeToggle } from "@/components/comun/theme-toggle";
 import { LogoMark } from "@/components/comun/logo";
@@ -227,6 +227,27 @@ function PinForm({ name }: { name: string }) {
   );
 }
 
+/** La base no respondió al abrir el panel: se dice qué pasó y se puede reintentar sin recargar. */
+function LoadError() {
+  const [busy, setBusy] = useState(false);
+  return (
+    <main role="alert" className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center">
+      <h1 className="font-display text-3xl">No pudimos conectar con la base</h1>
+      <p className="max-w-md text-gris">Revisá la conexión a internet. Lo que tengan cargado está guardado; no se perdió nada.</p>
+      <Button
+        loading={busy}
+        onClick={async () => {
+          setBusy(true);
+          await retryRemote();
+          setBusy(false);
+        }}
+      >
+        Reintentar
+      </Button>
+    </main>
+  );
+}
+
 /* ---------- Armazón ---------- */
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -234,9 +255,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const pinUnlocked = useSyncExternalStore(adminAuth.subscribe, adminAuth.isUnlocked, () => false);
   const remoteMode = useRemote((s) => s.mode);
+  const remoteError = useRemote((s) => s.error);
   const unlocked = REMOTE ? remoteMode === "duenos" : pinUnlocked;
   const [moreOpen, setMoreOpen] = useState(false);
   const [cmdOpen, setCmdOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  // Al abrir "Más", el foco entra al panel (para teclado y lectores de pantalla).
+  useEffect(() => {
+    if (moreOpen) moreRef.current?.querySelector<HTMLElement>("a, button")?.focus();
+  }, [moreOpen]);
   const newOrders = useDB((s) => s.orders.filter((o) => o.status === "nuevo").length);
   const name = useDB((s) => s.settings.storeName) || "Alma y Moda";
 
@@ -252,6 +279,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  if (REMOTE && remoteError && remoteMode === "cargando") return <LoadError />;
   if (!hydrated || (REMOTE && remoteMode === "cargando")) return <Spinner label="Abriendo el panel" />;
   if (!unlocked) return <Gate />;
 
@@ -282,9 +310,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     );
   };
 
+  // Barra inferior del celular: lo de todos los días (remitos y pedidos) a un toque; el resto en "Más".
   const bottom: NavItem[] = [
     { href: "/admin", label: "Inicio", icon: HouseIcon, exact: true },
-    { href: "/admin/productos", label: "Artículos", icon: HandbagIcon },
+    { href: "/admin/remitos", label: "Remitos", icon: ReceiptIcon },
     { href: "/admin/pedidos", label: "Pedidos", icon: ChatCircleTextIcon },
   ];
 
@@ -370,7 +399,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {moreOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Más secciones">
           <button type="button" aria-label="Cerrar" className="absolute inset-0 bg-tinta/40" onClick={() => setMoreOpen(false)} />
-          <div className="safe-bottom absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-papel px-4 pb-4 pt-3 [overscroll-behavior:contain]">
+          <div ref={moreRef} className="safe-bottom absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-3xl bg-papel px-4 pb-4 pt-3 [overscroll-behavior:contain]">
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-linea-fuerte" />
             <nav className="flex flex-col gap-4">
               {NAV.map((g) => (

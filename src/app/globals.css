@@ -19,6 +19,8 @@
   --piedra: #f4dfd8;
   --linea: #eddcd5;
   --linea-fuerte: #d6bdb3;
+  /* Borde de campos y contadores: 3,5:1 contra el fondo, para que se vea dónde se escribe (WCAG 1.4.11) */
+  --campo: #9c8079;
   --acento: #a84e36;
   --acento-hover: #8f3f2a;
   --acento-suave: #f8e6df;
@@ -49,10 +51,12 @@
   --piedra: #2d2823;
   --linea: #38322c;
   --linea-fuerte: #524940;
-  --acento: #d9a079;
-  --acento-hover: #e6b693;
-  --acento-suave: #3a2a1f;
-  --sobre-acento: #2a1708;
+  --campo: #7d7268;
+  /* Terracota aclarado: el mismo acento del tema claro, con contraste sobre fondo oscuro (7,4:1) */
+  --acento: #e3917a;
+  --acento-hover: #eda48e;
+  --acento-suave: #3a2420;
+  --sobre-acento: #2a1208;
   --ok: #6ccb9f;
   --ok-suave: #173326;
   --alerta: #e9b55c;
@@ -77,6 +81,7 @@
   --color-piedra: var(--piedra);
   --color-linea: var(--linea);
   --color-linea-fuerte: var(--linea-fuerte);
+  --color-campo: var(--campo);
   --color-acento: var(--acento);
   --color-acento-hover: var(--acento-hover);
   --color-acento-suave: var(--acento-suave);
@@ -187,8 +192,8 @@ a, button, summary, input, select, textarea, label {
   --linea-fuerte: var(--banda-linea);
   --piedra: var(--banda-linea);
   --alerta: #e9b55c;
-  --acento: #d9a079;
-  --sobre-acento: #2a1708;
+  --acento: #e8a089;
+  --sobre-acento: #2a1208;
   background: var(--banda);
   color: var(--sobre-banda);
 }

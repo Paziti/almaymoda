@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
-import { useCatalogo, useLocal, useOfertas, usePrecioAntes, type Product } from "@/lib/tienda";
-import { EmptyState } from "@/components/comun/ui";
+import { useCatalogo, useEstadoCatalogo, useLocal, useOfertas, usePrecioAntes, type Product } from "@/lib/tienda";
+import { CatalogoVacio, ErrorCatalogo, GrillaCargando } from "@/components/tienda/estado-catalogo";
 import { ProductCard } from "@/components/tienda/product-card";
 import { Portada } from "@/components/tienda/portada";
 import { CategoriasHover } from "@/components/tienda/categorias-hover";
@@ -37,6 +37,7 @@ export default function Home() {
   // Ofertas reales: las prenden los dueños desde el panel ("En oferta" en la ficha del artículo).
   const ofertas = useOfertas().slice(0, 4);
   const antes = usePrecioAntes();
+  const estado = useEstadoCatalogo();
 
   const latest = [...visible].sort((a, b) => b.createdAt - a.createdAt).slice(0, 8);
   const categories = settings.categories
@@ -80,7 +81,7 @@ export default function Home() {
               <h2 id="t-ofertas" className="font-display text-[clamp(2.25rem,6vw,4rem)] italic leading-[0.95] tracking-[-0.02em]">
                 Ofertas
               </h2>
-              <p className="text-gris">Precios especiales por tiempo limitado.</p>
+              <p className="text-gris">Artículos rebajados, con el precio anterior tachado.</p>
             </div>
             <Grilla items={ofertas} antes={antes} />
           </div>
@@ -98,7 +99,7 @@ export default function Home() {
               Ver todo el catálogo
             </Link>
           </div>
-          {latest.length ? <Grilla items={latest} /> : <EmptyState title="Todavía no hay artículos publicados">Los dueños los cargan desde el panel. Volvé en un rato.</EmptyState>}
+          {estado === "cargando" ? <GrillaCargando /> : estado === "error" ? <ErrorCatalogo /> : latest.length ? <Grilla items={latest} /> : <CatalogoVacio />}
         </div>
       </section>
 

@@ -52,7 +52,12 @@ export function Portada() {
             <span>Alma y Moda</span>
           </span>
         </h1>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] sm:text-sm">Mayorista de accesorios · Bahía Blanca</p>
+        {/* En el celular va en dos líneas parejas en lugar de dejar "Blanca" sola abajo */}
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] sm:text-sm">
+          <span className="block sm:inline">Mayorista de accesorios</span>
+          <span className="hidden sm:inline"> · </span>
+          <span className="block sm:inline">Bahía Blanca</span>
+        </p>
         <motion.span style={{ opacity: pista }} className="absolute bottom-8 h-12 w-px overflow-hidden bg-white/25" aria-hidden>
           <motion.span className="block h-1/2 w-full bg-white" animate={reduce ? undefined : { y: ["-100%", "200%"] }} transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }} />
         </motion.span>
@@ -61,7 +66,8 @@ export function Portada() {
       {/* Al abrir sólo se ve el título: las fotos entran desde abajo al scrollear y terminan de salir por arriba antes de soltarlo */}
       <div className="mx-auto grid max-w-6xl grid-cols-6 gap-x-3 gap-y-[6vh] px-4 pb-[100dvh] md:grid-cols-12 md:gap-x-6">
         {FOTOS.map((n, i) => (
-          <Foto key={n} nombre={n} className={clsx("max-md:col-span-2", MOVIL[i % MOVIL.length], ESCRITORIO[i % ESCRITORIO.length])} />
+          // En el celular van 8 fotos en vez de 16: el recorrido dura dos pantallas y no cuatro antes de llegar a los artículos.
+          <Foto key={n} nombre={n} className={clsx("max-md:col-span-2", i >= 8 && "max-md:hidden", MOVIL[i % MOVIL.length], ESCRITORIO[i % ESCRITORIO.length])} />
         ))}
       </div>
     </section>

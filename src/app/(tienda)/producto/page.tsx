@@ -6,7 +6,8 @@ import { useState } from "react";
 import clsx from "clsx";
 import { toast } from "sonner";
 import { ArrowLeftIcon } from "@phosphor-icons/react";
-import { useArticulo, useCatalogo, useCarrito, usePrecio, useVerPrecios, fmtMoney, totalStock, variantLabel } from "@/lib/tienda";
+import { useArticulo, useCatalogo, useCarrito, useEstadoCatalogo, usePrecio, useVerPrecios, fmtMoney, totalStock, variantLabel } from "@/lib/tienda";
+import { ErrorCatalogo, FichaCargando } from "@/components/tienda/estado-catalogo";
 import { Button, ButtonLink, EmptyState, PriceTag, Stepper } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 import { ProductCard } from "@/components/tienda/product-card";
@@ -26,7 +27,11 @@ function ProductoView({ id }: { id: string }) {
   const showPrice = useVerPrecios();
   const [img, setImg] = useState(0);
   const [qty, setQty] = useState<Record<string, number>>({});
+  const estado = useEstadoCatalogo();
 
+  // Mientras carga no se dice "no disponible": se muestra la forma de la ficha.
+  if (!product && estado === "cargando") return <FichaCargando />;
+  if (!product && estado === "error") return <ErrorCatalogo />;
   if (!product) {
     return (
       <EmptyState title="Este artículo no está disponible" action={<ButtonLink href="/catalogo">Volver al catálogo</ButtonLink>}>
@@ -119,7 +124,7 @@ function ProductoView({ id }: { id: string }) {
                           <div className="flex min-w-0 flex-col">
                             <span className="font-semibold">{name}</span>
                             <span className={clsx("text-sm", v.stock <= 0 ? "text-peligro" : "text-gris")}>
-                              {v.stock <= 0 ? "Sin stock" : `${available} disponibles${inCart(v.id) ? `, ${inCart(v.id)} en tu pedido` : ""}`}
+                              {v.stock <= 0 ? "Sin stock" : `${available} ${available === 1 ? "disponible" : "disponibles"}${inCart(v.id) ? `, ${inCart(v.id)} en tu pedido` : ""}`}
                             </span>
                           </div>
                           {v.stock > 0 && <Stepper label={variantLabel(v.size, v.color)} value={qty[v.id] ?? 0} max={available} onChange={(n) => setQty((q) => ({ ...q, [v.id]: n }))} />}
@@ -133,7 +138,7 @@ function ProductoView({ id }: { id: string }) {
           </section>
 
           <div className="sticky bottom-3 z-10 flex flex-col gap-2 rounded-2xl bg-lienzo/95 py-2 backdrop-blur md:static md:bg-transparent md:p-0">
-            <Button size="lg" variant={units === 0 ? "primary" : "accent"} disabled={units === 0} onClick={add} className="w-full">
+            <Button size="lg" variant={units === 0 ? "secondary" : "accent"} disabled={units === 0} onClick={add} className="w-full disabled:opacity-100!">
               {units === 0 ? "Elegí cantidades para agregar" : `Agregar ${units} ${units === 1 ? "unidad" : "unidades"}${showPrice ? ` · ${fmtMoney(units * price)}` : ""}`}
             </Button>
           </div>

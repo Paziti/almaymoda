@@ -60,7 +60,7 @@ export function IconButton({ label, className, children, ...rest }: ComponentPro
 /* ---------- Formularios ---------- */
 
 const fieldBase =
-  "w-full min-h-11 rounded-xl border border-linea-fuerte bg-papel px-3.5 text-[0.95rem] text-tinta placeholder:text-gris/80 focus:border-acento focus:outline-none focus:ring-2 focus:ring-acento/25 aria-[invalid=true]:border-peligro";
+  "w-full min-h-11 rounded-xl border border-campo bg-papel px-3.5 text-[0.95rem] text-tinta placeholder:text-gris/80 focus:border-acento focus:outline-none focus:ring-2 focus:ring-acento/25 aria-[invalid=true]:border-peligro";
 
 export const Input = forwardRef<HTMLInputElement, ComponentProps<"input">>(function Input({ className, ...rest }, ref) {
   return <input ref={ref} className={clsx(fieldBase, className)} {...rest} />;
@@ -111,7 +111,7 @@ export function Switch({ checked, onChange, label, description, id }: { checked:
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={clsx("relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors", checked ? "bg-acento" : "bg-linea-fuerte")}
+        className={clsx("relative mt-0.5 h-7 w-12 shrink-0 rounded-full transition-colors", checked ? "bg-acento" : "bg-campo")}
       >
         <span className={clsx("absolute top-1 size-5 rounded-full bg-papel shadow transition-[left] duration-150", checked ? "left-6" : "left-1")} />
       </button>
@@ -140,16 +140,17 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
 
 export function Stepper({ value, onChange, min = 0, max, label, size = "md" }: { value: number; onChange: (v: number) => void; min?: number; max?: number; label: string; size?: "sm" | "md" }) {
   const clamp = (n: number) => Math.max(min, max !== undefined ? Math.min(max, n) : n);
-  const h = size === "sm" ? "h-10" : "h-11";
+  // Las dos medidas quedan en 44 px de alto (área táctil); "sm" sólo achica el número.
+  const h = size === "sm" ? "h-11 text-[0.95rem]" : "h-11";
   return (
-    <div className={clsx("inline-flex items-stretch rounded-xl border border-linea-fuerte bg-papel", h)}>
-      <button type="button" aria-label={`Restar ${label}`} className="w-10 inline-flex items-center justify-center text-tinta hover:bg-piedra rounded-l-xl disabled:opacity-40" onClick={() => onChange(clamp(value - 1))} disabled={value <= min}>
+    <div className={clsx("inline-flex items-stretch rounded-xl border border-campo bg-papel focus-within:border-acento focus-within:ring-2 focus-within:ring-acento/30", h)}>
+      <button type="button" aria-label={`Restar ${label}`} className="w-11 inline-flex items-center justify-center text-tinta hover:bg-piedra rounded-l-xl disabled:opacity-40" onClick={() => onChange(clamp(value - 1))} disabled={value <= min}>
         <MinusIcon size={16} weight="bold" />
       </button>
       <input
         aria-label={label}
         inputMode="numeric"
-        className="num w-12 text-center bg-transparent font-semibold focus:outline-none"
+        className="num w-12 text-center bg-transparent font-semibold focus:outline-none focus-visible:outline-none"
         value={value}
         onFocus={(e) => e.currentTarget.select()}
         onChange={(e) => {
@@ -157,7 +158,7 @@ export function Stepper({ value, onChange, min = 0, max, label, size = "md" }: {
           onChange(clamp(n));
         }}
       />
-      <button type="button" aria-label={`Sumar ${label}`} className="w-10 inline-flex items-center justify-center text-tinta hover:bg-piedra rounded-r-xl disabled:opacity-40" onClick={() => onChange(clamp(value + 1))} disabled={max !== undefined && value >= max}>
+      <button type="button" aria-label={`Sumar ${label}`} className="w-11 inline-flex items-center justify-center text-tinta hover:bg-piedra rounded-r-xl disabled:opacity-40" onClick={() => onChange(clamp(value + 1))} disabled={max !== undefined && value >= max}>
         <PlusIcon size={16} weight="bold" />
       </button>
     </div>

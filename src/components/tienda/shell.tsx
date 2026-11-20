@@ -6,7 +6,6 @@ import { useSyncExternalStore } from "react";
 import clsx from "clsx";
 import { InstagramLogoIcon, WhatsappLogoIcon, UserIcon, ShoppingBagIcon, MapPinIcon, ClockIcon } from "@phosphor-icons/react";
 import { useListo, useHayEjemplos, useLocal, useCarrito, useCatalogo, whatsappUrl } from "@/lib/tienda";
-import { Spinner } from "@/components/comun/ui";
 import { ThemeToggle } from "@/components/comun/theme-toggle";
 import { LogoMark } from "@/components/comun/logo";
 
@@ -30,12 +29,15 @@ function suscribirScroll(cb: () => void) {
   };
 }
 
-/** En el inicio, la barra aparece recién cuando la portada terminó su recorrido (el título quedó limpio). */
+/**
+ * En el inicio, en pantallas grandes, la barra aparece recién cuando la portada terminó su recorrido (el título quedó limpio).
+ * En el celular está siempre: la portada ocupa varias pantallas y la clienta tiene que tener a mano el catálogo y su pedido.
+ */
 function useBarraVisible(enInicio: boolean) {
   return useSyncExternalStore(
     suscribirScroll,
     () => {
-      if (!enInicio) return true;
+      if (!enInicio || window.innerWidth < 768) return true;
       const portada = document.getElementById("portada");
       if (!portada) return false;
       return window.scrollY >= portada.offsetTop + portada.offsetHeight - window.innerHeight - 8;
@@ -79,7 +81,7 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
       )}
       <header className="sticky top-0 z-30 border-b border-linea bg-lienzo/95 backdrop-blur supports-[backdrop-filter]:bg-lienzo/80">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-1 px-3 sm:gap-2 sm:px-4">
-          <Link href="/" className="mr-auto text-[1.35rem] leading-none sm:text-[1.6rem]" aria-label="Inicio, Alma y Moda">
+          <Link href="/" className="mr-auto inline-flex min-h-11 items-center text-[1.35rem] leading-none sm:text-[1.6rem]" aria-label="Inicio, Alma y Moda">
             <Wordmark nameClassName="max-[400px]:sr-only" />
           </Link>
           <nav aria-label="Principal" className="flex items-center gap-0.5 sm:gap-1">
@@ -109,9 +111,9 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
       </header>
       </div>
 
-      {/* Mientras carga el catálogo, el main ocupa la pantalla para que el pie no aparezca arriba de todo. */}
-      <main id="contenido" className={clsx("flex-1", !hydrated && "min-h-dvh")}>
-        {hydrated ? children : <Spinner label="Cargando catálogo" />}
+      {/* La página se muestra enseguida: cada sección con artículos maneja su propia carga (tarjetas de carga) y su error. */}
+      <main id="contenido" className="flex-1">
+        {children}
       </main>
 
       <footer className="banda mt-24">
@@ -142,7 +144,7 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
                   <ul className="flex flex-col">
                     {footerCats.map((c) => (
                       <li key={c}>
-                        <Link href={`/catalogo?cat=${encodeURIComponent(c)}`} className="inline-flex min-h-10 items-center underline-offset-4 hover:underline">
+                        <Link href={`/catalogo?cat=${encodeURIComponent(c)}`} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">
                           {c}
                         </Link>
                       </li>
@@ -160,7 +162,7 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
                     ["/cuenta", "Mi cuenta"],
                   ].map(([href, label]) => (
                     <li key={href}>
-                      <Link href={href} className="inline-flex min-h-10 items-center underline-offset-4 hover:underline">
+                      <Link href={href} className="inline-flex min-h-11 items-center underline-offset-4 hover:underline">
                         {label}
                       </Link>
                     </li>
@@ -172,21 +174,21 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
                 <ul className="flex flex-col">
                   {settings.whatsapp && (
                     <li>
-                      <a href={whatsappUrl(settings.whatsapp, "Hola! Quería hacer una consulta.")} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 underline-offset-4 hover:underline">
+                      <a href={whatsappUrl(settings.whatsapp, "Hola! Quería hacer una consulta.")} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 underline-offset-4 hover:underline">
                         <WhatsappLogoIcon size={18} aria-hidden /> WhatsApp
                       </a>
                     </li>
                   )}
                   {settings.instagram && (
                     <li>
-                      <a href={settings.instagram} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 underline-offset-4 hover:underline">
+                      <a href={settings.instagram} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 underline-offset-4 hover:underline">
                         <InstagramLogoIcon size={18} aria-hidden /> Instagram
                       </a>
                     </li>
                   )}
                   {settings.email && (
                     <li>
-                      <a href={`mailto:${settings.email}`} className="inline-flex min-h-10 items-center break-all underline-offset-4 hover:underline">
+                      <a href={`mailto:${settings.email}`} className="inline-flex min-h-11 items-center break-all underline-offset-4 hover:underline">
                         {settings.email}
                       </a>
                     </li>

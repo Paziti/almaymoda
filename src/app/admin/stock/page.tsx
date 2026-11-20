@@ -168,7 +168,7 @@ export default function StockPage() {
                                   aria-label={`${mode === "sumar" ? "Sumar" : "Stock contado"} ${c} ${s}`}
                                   inputMode="numeric"
                                   placeholder={mode === "sumar" ? "+0" : String(v.stock)}
-                                  className="num h-12 w-full min-w-16 rounded-lg border border-linea-fuerte bg-papel text-center text-base font-semibold placeholder:text-gris/70 focus:border-acento focus:outline-none"
+                                  className="num h-12 w-full min-w-16 rounded-lg border border-campo bg-papel text-center text-base font-semibold placeholder:text-gris/70 focus:border-acento focus:outline-none"
                                   value={values[v.id] ?? ""}
                                   onChange={(e) => {
                                     const raw = e.target.value.replace(/\D/g, "");

@@ -91,7 +91,7 @@ function Cuenta() {
           </div>
           <div className="flex flex-col gap-1 rounded-xl border border-linea bg-papel p-4 md:p-5">
             <span className="text-sm text-gris">Último pago</span>
-            <span className="num font-display text-3xl">{acc.lastPayment ? fmtMoney(acc.lastPayment.amount) : "—"}</span>
+            <span className="num font-display text-3xl">{acc.lastPayment ? fmtMoney(acc.lastPayment.amount) : "Sin pagos"}</span>
             <span className="text-sm text-gris">{acc.lastPayment ? `${fmtDate(acc.lastPayment.at)} · ${methodLabel[acc.lastPayment.method]}` : "Todavía no pagó nada"}</span>
           </div>
           <button type="button" onClick={() => setAdjusting(true)} className="flex flex-col items-start gap-1 rounded-xl border border-dashed border-linea-fuerte p-4 text-left hover:bg-piedra/40 md:p-5">

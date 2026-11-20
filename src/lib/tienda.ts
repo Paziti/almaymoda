@@ -18,7 +18,7 @@ import { useShopPricer, useRegularPricer, useHasDemo } from "./hooks";
 import { isOnSale, totalStock } from "./pricing";
 import { now, uid } from "./format";
 import { REMOTE, supabase } from "./supabase";
-import "./remote";
+import { retryRemote, useRemote } from "./remote";
 import type { Client, LineItem, Order, OrderStatus, Product, Variant } from "./types";
 
 export type { CartLine, Order, OrderStatus, Product, Variant, LineItem };
@@ -51,8 +51,32 @@ export function useLocal() {
   );
 }
 
-/** true cuando los datos ya cargaron (antes conviene mostrar un spinner). */
+/** true cuando los datos ya cargaron. */
 export const useListo = useHydrated;
+
+export type EstadoCatalogo = "cargando" | "listo" | "error";
+
+/**
+ * En qué está el catálogo: mientras carga, las secciones con artículos muestran tarjetas de carga;
+ * si la base no respondió (y no hay copia guardada), muestran el error con el botón para reintentar.
+ * Lo que no depende de datos (portada, textos) se muestra siempre.
+ */
+export function useEstadoCatalogo(): EstadoCatalogo {
+  const listo = useHydrated();
+  const error = useRemote((s) => s.error);
+  const hayArticulos = useDB((s) => s.products.length > 0);
+  if (error && !hayArticulos) return "error";
+  return listo ? "listo" : "cargando";
+}
+
+/** Vuelve a pedir el catálogo a la base después de un error. */
+export const reintentarCarga = retryRemote;
+
+/**
+ * false mientras la tienda no pueda verificar quién es la clienta (con la base, sus datos quedan en su
+ * celular y no se consulta su historial). La página "Mi cuenta" lo usa para no prometer lo que no muestra.
+ */
+export const HISTORIAL_PEDIDOS = !REMOTE;
 
 /** true si todavía hay artículos de ejemplo cargados. */
 export const useHayEjemplos = useHasDemo;
