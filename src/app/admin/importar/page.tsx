@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { toast } from "sonner";
-import { FileArrowUpIcon, CheckCircleIcon, DownloadSimpleIcon, WarningIcon } from "@phosphor-icons/react";
+import { FileArrowUpIcon, CheckCircleIcon, DownloadSimpleIcon, ReceiptIcon, WarningIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
 import { fmtDateTime, fmtMoney, fmtNumber, parseNumber } from "@/lib/format";
 import { salePrice } from "@/lib/pricing";
@@ -16,6 +16,7 @@ import { PageHeader, pagePad } from "@/components/admin/shell";
 type Step = 1 | 2 | 3 | 4;
 const rowLabel: Record<DiffKind, string> = { cambia: "Cambia", nuevo: "Nuevo", igual: "Sin cambios", error: "Con problemas" };
 const STEPS = ["Archivo", "Columnas", "Revisar", "Listo"];
+const fmtPct = (n: number) => n.toLocaleString("es-AR", { maximumFractionDigits: 2 });
 
 const kindInfo: Record<DiffKind, { label: string; tone: "acento" | "ok" | "neutral" | "peligro" }> = {
   cambia: { label: "Cambian", tone: "acento" },
@@ -40,7 +41,8 @@ export default function ImportarPage() {
   const [mapping, setMapping] = useState<FieldKey[]>([]);
   const [dragging, setDragging] = useState(false);
   const [opts, setOpts] = useState<BuildOptions>({ supplierId: null, updateCost: true, updateName: false, createNew: true, costAdjustPct: 0 });
-  const [pctText, setPctText] = useState("");
+  const [discountText, setDiscountText] = useState("");
+  const [surchargeText, setSurchargeText] = useState("");
   const [stockMode, setStockMode] = useState<"none" | "add" | "replace">("add");
   const [rows, setRows] = useState<DiffRow[]>([]);
   const [filter, setFilter] = useState<DiffKind | "todos">("todos");
@@ -59,6 +61,10 @@ export default function ImportarPage() {
       setResult(r);
       setTableIdx(0);
       setMapping(guessMapping(r.tables[0]));
+      // En facturas y presupuestos, el pie dice la bonificación y si los precios son sin IVA.
+      setDiscountText(r.invoice?.discountPct ? fmtPct(r.invoice.discountPct) : "");
+      setSurchargeText(r.invoice?.vatPct ? fmtPct(r.invoice.vatPct) : "");
+      setStockMode("add");
       setStep(2);
     } catch (e) {
       console.error(e);
@@ -77,9 +83,11 @@ export default function ImportarPage() {
   const hasStock = mapping.includes("stock");
   const canContinue = mapping.includes("code") && (mapping.includes("cost") || hasStock);
 
+  const factor = (1 - (parseNumber(discountText) ?? 0) / 100) * (1 + (parseNumber(surchargeText) ?? 0) / 100);
+
   const toReview = () => {
     if (!table) return;
-    const o = { ...opts, costAdjustPct: parseNumber(pctText) ?? 0 };
+    const o = { ...opts, costAdjustPct: (factor - 1) * 100 };
     setOpts(o);
     setRows(buildDiff(table, mapping, products, o));
     setFilter("todos");
@@ -117,6 +125,8 @@ export default function ImportarPage() {
     setDone(null);
     setFileName("");
     setError("");
+    setDiscountText("");
+    setSurchargeText("");
   };
 
   const downloadTemplate = async () => {
@@ -134,6 +144,8 @@ export default function ImportarPage() {
   };
 
   const supplierFor = (id: string | null) => suppliers.find((s) => s.id === id);
+  const invoice = result?.invoice;
+  const readingInvoice = !!invoice && tableIdx === 0;
 
   return (
     <div>
@@ -210,6 +222,20 @@ export default function ImportarPage() {
 
         {step === 2 && result && table && (
           <>
+            {readingInvoice && (
+              <Panel className="flex items-start gap-3 p-5">
+                <ReceiptIcon size={28} className="shrink-0 text-acento" />
+                <div className="flex flex-col gap-1">
+                  <h2 className="font-semibold">Lo leímos como factura o presupuesto</h2>
+                  <p className="text-sm text-gris">
+                    <span className="num font-semibold text-tinta">{fmtNumber(invoice.items)}</span> artículos y{" "}
+                    <span className="num font-semibold text-tinta">{fmtNumber(invoice.units)}</span> unidades en total
+                    {invoice.discountPct ? `, con bonificación del ${fmtPct(invoice.discountPct)} %` : ""}
+                    {invoice.vatPct ? `, precios sin IVA (${fmtPct(invoice.vatPct)} %)` : ""}. Tomamos cada renglón donde la cantidad por el precio da el importe; los totales y los datos fiscales quedan afuera.
+                  </p>
+                </div>
+              </Panel>
+            )}
             <Panel className="flex flex-col gap-4 p-5">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="font-semibold">{fileName}</h2>
@@ -272,9 +298,26 @@ export default function ImportarPage() {
                   ))}
                 </Select>
               </Field>
-              <Field label="Ajustar el costo leído (%)" htmlFor="pct" hint="Ej: 21 si la lista viene sin IVA, o -10 si tiene un descuento.">
-                <Input id="pct" inputMode="decimal" className="num" placeholder="0" value={pctText} onChange={(e) => setPctText(e.target.value)} />
-              </Field>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Bonificación (%)" htmlFor="desc" hint="Se descuenta del precio leído.">
+                  <Input id="desc" inputMode="decimal" className="num" placeholder="0" value={discountText} onChange={(e) => setDiscountText(e.target.value)} />
+                </Field>
+                <Field label="IVA u otro recargo (%)" htmlFor="rec" hint="21 si los precios son sin IVA.">
+                  <Input id="rec" inputMode="decimal" className="num" placeholder="0" value={surchargeText} onChange={(e) => setSurchargeText(e.target.value)} />
+                </Field>
+                {Math.abs(factor - 1) > 0.00001 && (
+                  <p className="col-span-2 text-sm text-gris">
+                    Costo = precio leído × <span className="num font-semibold text-tinta">{factor.toLocaleString("es-AR", { maximumFractionDigits: 4 })}</span>
+                    {table.rows[0] && mapping.includes("cost") && parseNumber(table.rows[0][mapping.indexOf("cost")]) !== null && (
+                      <>
+                        {" "}
+                        (ej: {fmtMoney(parseNumber(table.rows[0][mapping.indexOf("cost")])!)} →{" "}
+                        <span className="num font-semibold text-tinta">{fmtMoney(parseNumber(table.rows[0][mapping.indexOf("cost")])! * factor)}</span>)
+                      </>
+                    )}
+                  </p>
+                )}
+              </div>
               <div className="flex flex-col gap-1">
                 <Switch checked={opts.updateCost} onChange={(v) => setOpts({ ...opts, updateCost: v })} label="Actualizar costos" description="El precio de venta se recalcula con el coeficiente" />
                 <Switch checked={opts.createNew} onChange={(v) => setOpts({ ...opts, createNew: v })} label="Crear artículos nuevos" description="Quedan ocultos hasta que les pongas foto" />
@@ -294,7 +337,13 @@ export default function ImportarPage() {
                     ]}
                   />
                   <p className="text-sm text-gris">
-                    {stockMode === "add" ? "Para mercadería que llegó: se suma a lo que ya hay." : stockMode === "replace" ? "Para un conteo completo: el stock queda igual al del archivo." : "Sólo se actualizan precios."}
+                    {stockMode === "add"
+                      ? readingInvoice
+                        ? "Para mercadería que llegó: se suman las cantidades de la factura. Si ya la habías contado en el stock, elegí No tocar."
+                        : "Para mercadería que llegó: se suma a lo que ya hay."
+                      : stockMode === "replace"
+                        ? "Para un conteo completo: el stock queda igual al del archivo."
+                        : "Sólo se actualizan precios."}
                   </p>
                 </div>
               )}

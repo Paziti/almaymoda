@@ -1,5 +1,7 @@
 "use client";
 
+import { readInvoice, type InvoiceInfo } from "./factura";
+
 export interface ParsedTable {
   name: string;
   headers: string[];
@@ -10,6 +12,8 @@ export interface ParseResult {
   kind: "excel" | "csv" | "pdf" | "access";
   tables: ParsedTable[];
   warnings: string[];
+  /** Si el PDF es una factura o presupuesto, lo que se leyó del comprobante. */
+  invoice?: InvoiceInfo;
 }
 
 const cell = (v: unknown) => {
@@ -125,6 +129,10 @@ async function parsePdf(file: File): Promise<ParseResult> {
   const tables: ParsedTable[] = [];
   const warnings: string[] = [];
 
+  // Factura o presupuesto: va primero porque trae cantidad, precio unitario e importe ya separados.
+  const invoice = readInvoice(byGap);
+  if (invoice) tables.push(invoice.table);
+
   if (commonLen >= 2 && commonHits / byGap.length >= 0.45) {
     tables.push(splitHeader(byGap, "PDF por columnas"));
   }
@@ -154,7 +162,7 @@ async function parsePdf(file: File): Promise<ParseResult> {
     tables.push({ name: "PDF por renglón (código, descripción, precio)", headers: ["Código", "Descripción", "Precio"], rows: lineRows });
   }
   if (!tables.length) warnings.push("No se encontraron renglones con precio en el PDF.");
-  return { kind: "pdf", tables, warnings };
+  return { kind: "pdf", tables, warnings, invoice: invoice?.info };
 }
 
 async function parseAccess(file: File): Promise<ParseResult> {

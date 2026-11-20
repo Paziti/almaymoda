@@ -55,3 +55,6 @@ skills-lock.json
 
 # wrangler (Cloudflare)
 .wrangler/
+
+# Listas y facturas de proveedores (datos del cliente)
+/listas
