@@ -83,6 +83,45 @@ function composeCover(img: HTMLImageElement) {
 
 export type PhotoStage = "cargando-modelo" | "quitando-fondo" | "componiendo";
 
+// Si en este tiempo no termina (compu muy lenta o descarga trabada), se corta y se usa la foto sin quitar fondo.
+const PLAZO_MS = 3 * 60 * 1000;
+
+let worker: Worker | null = null;
+let siguienteId = 0;
+
+/** El worker queda vivo entre fotos para no volver a cargar el modelo cada vez. */
+function quitarFondoEnWorker(file: Blob, onStage?: (s: PhotoStage, pct?: number) => void): Promise<Blob> {
+  worker ??= new Worker(new URL("./quitar-fondo.worker.ts", import.meta.url), { type: "module" });
+  const w = worker;
+  const id = ++siguienteId;
+  return new Promise((resolve, reject) => {
+    const terminar = (err?: Error) => {
+      clearTimeout(plazo);
+      w.removeEventListener("message", alMensaje);
+      w.removeEventListener("error", alError);
+      if (err) {
+        w.terminate();
+        if (worker === w) worker = null;
+        reject(err);
+      }
+    };
+    const plazo = setTimeout(() => terminar(new Error("Quitar el fondo tardó demasiado.")), PLAZO_MS);
+    const alError = (e: ErrorEvent) => terminar(new Error(e.message || "Falló la IA de quitar fondo."));
+    const alMensaje = (e: MessageEvent<import("./quitar-fondo.worker").RespuestaFondo>) => {
+      const r = e.data;
+      if (r.id !== id) return;
+      if (r.tipo === "progreso") onStage?.(r.etapa, r.pct);
+      else if (r.tipo === "listo") {
+        terminar();
+        resolve(r.blob);
+      } else terminar(new Error(r.mensaje));
+    };
+    w.addEventListener("message", alMensaje);
+    w.addEventListener("error", alError);
+    w.postMessage({ id, file });
+  });
+}
+
 export async function processPhoto(
   file: Blob,
   opts: { removeBackground: boolean; background: string; onStage?: (s: PhotoStage, pct?: number) => void },
@@ -92,15 +131,7 @@ export async function processPhoto(
     return composeCover(img);
   }
   opts.onStage?.("cargando-modelo", 0);
-  const { removeBackground } = await import("@imgly/background-removal");
-  const blob = await removeBackground(file, {
-    model: "isnet_fp16",
-    output: { format: "image/png" },
-    progress: (key, current, total) => {
-      if (key.startsWith("fetch")) opts.onStage?.("cargando-modelo", total ? Math.round((current / total) * 100) : undefined);
-      else opts.onStage?.("quitando-fondo");
-    },
-  });
+  const blob = await quitarFondoEnWorker(file, opts.onStage);
   opts.onStage?.("componiendo");
   const img = await loadImage(blob);
   return composeCutout(img, opts.background);
