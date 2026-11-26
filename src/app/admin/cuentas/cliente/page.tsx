@@ -152,7 +152,7 @@ function Cuenta() {
                   )}
 
                   <div className="flex items-center gap-3">
-                    <span className={clsx("num w-28 text-right font-semibold", m.payment && !m.credit ? "text-gris line-through" : m.credit > 0 ? "text-ok" : undefined)}>
+                    <span className={clsx("num w-28 text-right font-semibold", m.payment && !m.credit ? "text-gris line-through" : m.credit > 0 ? "text-peligro" : undefined)}>
                       {m.debit > 0 ? `+ ${fmtMoney(m.debit)}` : `− ${fmtMoney(m.credit || m.payment?.amount || 0)}`}
                     </span>
                     <span className="num hidden w-28 text-right text-sm text-gris sm:block">Saldo {fmtMoney(m.balance)}</span>

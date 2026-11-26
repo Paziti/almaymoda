@@ -6,17 +6,17 @@ import { toast } from "sonner";
 import { MagnifyingGlassIcon, TrashIcon, PlusIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
 import { variantLabel } from "@/lib/labels";
-import { fmtDate, fmtMoney, parseNumber, uid } from "@/lib/format";
+import { fmtDate, fmtMoney, parseNumber, remitoNumber, uid } from "@/lib/format";
 import { findExact, looksLikeBarcode, searchProducts } from "@/lib/barcode";
 import { totalStock } from "@/lib/pricing";
 import { useListPricer } from "@/lib/hooks";
-import { remitoTotals } from "@/lib/remito-pdf";
+import { brandOf, remitoTotals } from "@/lib/remito-pdf";
 import type { Client, LineItem, PriceList, Product } from "@/lib/types";
-import { Button, Field, IconButton, Input, Panel, Segmented, Select, Spinner, Stepper, Switch, Textarea } from "@/components/comun/ui";
+import { Button, ButtonLink, EmptyState, Field, IconButton, Input, Panel, Segmented, Select, Spinner, Stepper, Switch, Textarea } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 import { PaymentFields, draftToPayment, emptyDraft } from "@/components/admin/cobro";
-import { addDays, startOfDay } from "@/lib/cuentas";
+import { accountOf, addDays, remitoAmount, startOfDay } from "@/lib/cuentas";
 
 type Line = LineItem & { key: string };
 
@@ -28,32 +28,45 @@ function Builder() {
   const params = useSearchParams();
   const orderId = params.get("pedido");
   const presetClientId = params.get("cliente");
+  const editId = params.get("editar");
+  // Remito que se corrige: mismo número, mismos pagos; cambian los renglones y los datos.
+  const editing = useDB((s) => (editId ? s.remitos.find((r) => r.id === editId) : undefined));
+  const pointOfSale = useDB((s) => s.settings.pointOfSale);
+  const allRemitos = useDB((s) => s.remitos);
+  const payments = useDB((s) => s.payments);
+  const adjustments = useDB((s) => s.adjustments);
+  const updateRemito = useDB((s) => s.updateRemito);
   const products = useDB((s) => s.products);
+  const suppliers = useDB((s) => s.suppliers);
   const clients = useDB((s) => s.clients);
   const order = useDB((s) => s.orders.find((o) => o.id === orderId));
   const createRemito = useDB((s) => s.createRemito);
   const saveClient = useDB((s) => s.saveClient);
   const listPricer = useListPricer();
 
-  const initialClientId = order?.clientId ?? presetClientId ?? "";
+  const initialClientId = editing ? (editing.clientId ?? "") : (order?.clientId ?? presetClientId ?? "");
   const orderClient = initialClientId ? clients.find((c) => c.id === initialClientId) : undefined;
   const [clientId, setClientId] = useState<string>(orderClient ? initialClientId : "");
   const [customer, setCustomer] = useState(() =>
-    orderClient
+    editing
+      ? editing.customer
+      : orderClient
       ? { name: orderClient.name, phone: orderClient.phone, email: orderClient.email, address: [orderClient.address, orderClient.city].filter(Boolean).join(", "), cuit: orderClient.cuit }
       : order
         ? { ...emptyCustomer, name: order.customer.name, phone: order.customer.phone, address: order.customer.city }
         : emptyCustomer,
   );
-  const [priceList, setPriceList] = useState<PriceList>(params.get("lista") === "minorista" || orderClient?.retail ? "minorista" : "mayorista");
+  const [priceList, setPriceList] = useState<PriceList>(editing ? (editing.priceList ?? "mayorista") : params.get("lista") === "minorista" || orderClient?.retail ? "minorista" : "mayorista");
   const pricer = (p: Product) => listPricer(priceList, p);
   const [saveAsClient, setSaveAsClient] = useState(true);
-  const [lines, setLines] = useState<Line[]>(() => (order?.items ?? []).map((i) => ({ ...i, key: uid("l") })));
+  const [lines, setLines] = useState<Line[]>(() => (editing?.items ?? order?.items ?? []).map((i) => ({ ...i, key: uid("l") })));
   const [q, setQ] = useState("");
   const [picking, setPicking] = useState<Product | null>(null);
   const [pickQty, setPickQty] = useState<Record<string, number>>({});
-  const [discountText, setDiscountText] = useState("");
-  const [notes, setNotes] = useState(order?.notes ?? "");
+  const [discountText, setDiscountText] = useState(editing?.discount ? String(editing.discount) : "");
+  const [notes, setNotes] = useState(editing?.notes ?? order?.notes ?? "");
+  // Al editar, si la clienta queda con saldo a favor se pide tocar Guardar dos veces (con el mismo total).
+  const [favorOkTotal, setFavorOkTotal] = useState<number | null>(null);
   const [discountStock, setDiscountStock] = useState(true);
   const [free, setFree] = useState({ name: "", qty: "1", price: "" });
   const [error, setError] = useState("");
@@ -133,7 +146,35 @@ function Builder() {
   const { subtotal, units, discountAmount, total } = remitoTotals({ items: lines, discount });
   const dueDays = Math.max(0, Math.round(parseNumber(daysText) ?? 0));
 
+  const oldTotal = editing ? remitoAmount(editing) : 0;
+  const balanceAfter = useMemo(() => {
+    if (!editing?.clientId) return null;
+    return accountOf(editing.clientId, { remitos: allRemitos, payments, adjustments }).balance - oldTotal + total;
+  }, [editing, allRemitos, payments, adjustments, oldTotal, total]);
+
+  const saveEdit = () => {
+    if (!editing) return;
+    const name = customer.name.trim() || (priceList === "minorista" ? WALK_IN : "");
+    if (!name) return setError("Poné el nombre del cliente.");
+    if (!lines.length) return setError("El remito tiene que tener al menos un artículo. Si no va más, anulalo.");
+    if (balanceAfter !== null && balanceAfter < 0 && favorOkTotal !== total) {
+      setFavorOkTotal(total);
+      return setError(`Con este total la clienta queda con ${fmtMoney(-balanceAfter)} a favor, porque ya pagó más. Si está bien, tocá «Guardar cambios» otra vez.`);
+    }
+    setError("");
+    updateRemito(editing.id, {
+      customer: { ...customer, name },
+      items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, code: l.code, name: l.name, size: l.size, color: l.color, qty: l.qty, unitPrice: l.unitPrice, brand: l.brand ?? brandOf(l.productId, products, suppliers) })),
+      notes,
+      discount,
+      priceList,
+    });
+    toast.success(`Remito N° ${remitoNumber(pointOfSale, editing.number)} actualizado`);
+    router.replace(`/admin/remitos/ver?id=${editing.id}`);
+  };
+
   const submit = () => {
+    if (editing) return saveEdit();
     // En el local muchas veces no se pide el nombre.
     const name = customer.name.trim() || (priceList === "minorista" ? WALK_IN : "");
     if (!name) return setError("Poné el nombre del cliente.");
@@ -156,7 +197,7 @@ function Builder() {
       {
         clientId: cid,
         customer: { ...customer, name },
-        items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, code: l.code, name: l.name, size: l.size, color: l.color, qty: l.qty, unitPrice: l.unitPrice })),
+        items: lines.map((l) => ({ productId: l.productId, variantId: l.variantId, code: l.code, name: l.name, size: l.size, color: l.color, qty: l.qty, unitPrice: l.unitPrice, brand: brandOf(l.productId, products, suppliers) })),
         notes,
         discount,
         priceList,
@@ -175,9 +216,25 @@ function Builder() {
 
   const setLine = (key: string, patch: Partial<Line>) => setLines((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)));
 
+  if (editId && (!editing || editing.status === "anulado")) {
+    return (
+      <EmptyState title={editing ? "Este remito está anulado" : "No encontramos este remito"} action={<ButtonLink href="/admin/remitos">Volver a remitos</ButtonLink>}>
+        {editing ? "Los remitos anulados no se pueden editar. Hacé uno nuevo." : "Revisá el número en la lista de remitos."}
+      </EmptyState>
+    );
+  }
+
   return (
     <div className="pb-24 lg:pb-0">
-      <PageHeader title="Nuevo remito" description={order ? `Desde el pedido web N° ${order.number}` : undefined} back={{ href: "/admin/remitos", label: "Remitos" }} />
+      {editing ? (
+        <PageHeader
+          title={`Editar remito ${remitoNumber(pointOfSale, editing.number)}`}
+          description="Queda el mismo número. Al guardar, el PDF sale con los cambios: si ya lo mandaste, reenvialo."
+          back={{ href: `/admin/remitos/ver?id=${editing.id}`, label: "Volver al remito" }}
+        />
+      ) : (
+        <PageHeader title="Nuevo remito" description={order ? `Desde el pedido web N° ${order.number}` : undefined} back={{ href: "/admin/remitos", label: "Remitos" }} />
+      )}
       <div className={`${pagePad} grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]`}>
         <div className="flex min-w-0 flex-col gap-6">
           <Panel className="flex flex-col gap-3 p-5">
@@ -199,8 +256,8 @@ function Builder() {
 
           <Panel className="flex flex-col gap-4 p-5">
             <h2 className="font-semibold">Cliente</h2>
-            <Field label="Cliente guardado" htmlFor="r-client">
-              <Select id="r-client" value={clientId} onChange={(e) => pickClient(e.target.value)}>
+            <Field label="Cliente guardado" htmlFor="r-client" hint={editing ? "No se cambia al editar: la deuda y los pagos son de esta clienta. Si te equivocaste de clienta, anulá el remito y hacé uno nuevo." : undefined}>
+              <Select id="r-client" value={clientId} onChange={(e) => pickClient(e.target.value)} disabled={!!editing}>
                 <option value="">Cliente nuevo o sin guardar</option>
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -227,7 +284,7 @@ function Builder() {
                 <Input id="r-addr" value={customer.address} onChange={(e) => setCustomer({ ...customer, address: e.target.value })} />
               </Field>
             </div>
-            {!clientId && <Switch checked={saveAsClient} onChange={setSaveAsClient} label="Guardar en clientes" description="Para no tener que tipear los datos la próxima vez" />}
+            {!clientId && !editing && <Switch checked={saveAsClient} onChange={setSaveAsClient} label="Guardar en clientes" description="Para no tener que tipear los datos la próxima vez" />}
           </Panel>
 
           <Panel className="flex flex-col gap-4 p-5">
@@ -393,54 +450,86 @@ function Builder() {
             <Field label="Observaciones" htmlFor="r-notes" hint="Sale impreso en el remito">
               <Textarea id="r-notes" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
             </Field>
-            <Switch checked={discountStock} onChange={setDiscountStock} label="Descontar del stock" description="Si se anula el remito, el stock vuelve" />
+            {editing ? (
+              <p className="text-sm text-gris">
+                {editing.stockDiscounted ? "El stock se corrige solo: lo que agregues se descuenta y lo que saques vuelve." : "Este remito no movió stock y al editarlo tampoco lo mueve."}
+              </p>
+            ) : (
+              <Switch checked={discountStock} onChange={setDiscountStock} label="Descontar del stock" description="Si se anula el remito, el stock vuelve" />
+            )}
           </Panel>
 
-          <Panel className="flex flex-col gap-4 p-5">
-            <h2 className="font-semibold">Cobro</h2>
-            <Segmented
-              label="Cómo paga"
-              value={cobro}
-              onChange={setCobro}
-              options={[
-                { value: "contado", label: "Contado" },
-                { value: "cuenta", label: "Cuenta corriente" },
-                { value: "parcial", label: "Parcial" },
-              ]}
-            />
-            {cobro !== "contado" && (
-              <Field label={cobro === "parcial" ? "El resto vence en (días)" : "Vence en (días)"} htmlFor="r-days" hint={`Vence el ${fmtDate(addDays(startOfDay(), dueDays))}`}>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Input id="r-days" inputMode="numeric" className="num w-20" value={daysText} onChange={(e) => setDaysText(e.target.value.replace(/\D/g, ""))} />
-                  {[7, 15, 20, 30].map((d) => (
-                    <Button key={d} size="sm" variant={dueDays === d ? "primary" : "secondary"} onClick={() => setDaysText(String(d))}>
-                      {d}
-                    </Button>
-                  ))}
-                </div>
-              </Field>
-            )}
-            {cobro !== "cuenta" && (
-              <PaymentFields
-                idPrefix="rp"
-                value={cobro === "contado" ? { ...pay, amount: String(total) } : pay}
-                onChange={(d) => setPay(cobro === "contado" ? { ...d, amount: pay.amount } : d)}
-                showAmount={cobro === "parcial"}
-                showDate={false}
+          {editing ? (
+            <Panel className="flex flex-col gap-3 p-5 text-sm">
+              <h2 className="font-semibold">Cuenta</h2>
+              <div className="flex justify-between">
+                <span className="text-gris">Total antes</span>
+                <span className="num">{fmtMoney(oldTotal)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gris">Total nuevo</span>
+                <span className="num font-semibold">{fmtMoney(total)}</span>
+              </div>
+              {balanceAfter !== null ? (
+                <p className={balanceAfter < 0 ? "font-semibold text-peligro" : "text-gris"}>
+                  {balanceAfter < 0 ? `La clienta queda con ${fmtMoney(-balanceAfter)} a favor.` : `La clienta queda debiendo ${fmtMoney(balanceAfter)} en total.`} Los pagos ya cargados no cambian.
+                </p>
+              ) : (
+                <p className="text-gris">Sin clienta guardada: no hay cuenta corriente. Si el total cambió, cobrá o devolvé la diferencia.</p>
+              )}
+              {error && (
+                <p role="alert" className="font-semibold text-peligro">
+                  {error}
+                </p>
+              )}
+            </Panel>
+          ) : (
+            <Panel className="flex flex-col gap-4 p-5">
+              <h2 className="font-semibold">Cobro</h2>
+              <Segmented
+                label="Cómo paga"
+                value={cobro}
+                onChange={setCobro}
+                options={[
+                  { value: "contado", label: "Contado" },
+                  { value: "cuenta", label: "Cuenta corriente" },
+                  { value: "parcial", label: "Parcial" },
+                ]}
               />
-            )}
-            {cobro === "parcial" && total > 0 && (parseNumber(pay.amount) ?? 0) > 0 && (
-              <p className="num text-sm text-gris">Queda a cuenta {fmtMoney(Math.max(0, total - (parseNumber(pay.amount) ?? 0)))}</p>
-            )}
-            {error && (
-              <p role="alert" className="text-sm font-semibold text-peligro">
-                {error}
-              </p>
-            )}
-          </Panel>
+              {cobro !== "contado" && (
+                <Field label={cobro === "parcial" ? "El resto vence en (días)" : "Vence en (días)"} htmlFor="r-days" hint={`Vence el ${fmtDate(addDays(startOfDay(), dueDays))}`}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input id="r-days" inputMode="numeric" className="num w-20" value={daysText} onChange={(e) => setDaysText(e.target.value.replace(/\D/g, ""))} />
+                    {[7, 15, 20, 30].map((d) => (
+                      <Button key={d} size="sm" variant={dueDays === d ? "primary" : "secondary"} onClick={() => setDaysText(String(d))}>
+                        {d}
+                      </Button>
+                    ))}
+                  </div>
+                </Field>
+              )}
+              {cobro !== "cuenta" && (
+                <PaymentFields
+                  idPrefix="rp"
+                  value={cobro === "contado" ? { ...pay, amount: String(total) } : pay}
+                  onChange={(d) => setPay(cobro === "contado" ? { ...d, amount: pay.amount } : d)}
+                  showAmount={cobro === "parcial"}
+                  showDate={false}
+                />
+              )}
+              {cobro === "parcial" && total > 0 && (parseNumber(pay.amount) ?? 0) > 0 && (
+                <p className="num text-sm text-gris">Queda a cuenta {fmtMoney(Math.max(0, total - (parseNumber(pay.amount) ?? 0)))}</p>
+              )}
+              {error && (
+                <p role="alert" className="text-sm font-semibold text-peligro">
+                  {error}
+                </p>
+              )}
+            </Panel>
+          )}
           <div className="safe-bottom fixed inset-x-0 bottom-16 z-30 border-t border-linea bg-papel p-3 lg:static lg:border-0 lg:bg-transparent lg:p-0">
             <Button size="lg" className="w-full" onClick={submit}>
-              Generar remito · {fmtMoney(total)}
+              {editing ? "Guardar cambios" : "Generar remito"} · {fmtMoney(total)}
             </Button>
           </div>
         </div>

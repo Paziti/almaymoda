@@ -1,0 +1,9 @@
+# Copiá este archivo como supabase/credenciales.local (no se sube a GitHub) y completalo.
+# Lo usa `npm run sb -- ...` para que la CLI de Supabase entre con la cuenta de
+# Alma y Moda sin pisar el login de otros proyectos.
+
+# Cuenta de Alma y Moda → https://supabase.com/dashboard/account/tokens → Generate new token
+SUPABASE_ACCESS_TOKEN=
+
+# Contraseña de la base (Project Settings → Database). Si no la sabés, reseteala ahí.
+SUPABASE_DB_PASSWORD=

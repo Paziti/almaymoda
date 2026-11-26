@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { Suspense, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { MagnifyingGlassIcon, PlusIcon, HandbagIcon, EyeSlashIcon } from "@phosphor-icons/react";
+import { MagnifyingGlassIcon, PlusIcon, HandbagIcon, EyeSlashIcon, TagIcon } from "@phosphor-icons/react";
+import { toast } from "sonner";
 import { useDB } from "@/lib/store";
 import { fmtMoney, normalizeText } from "@/lib/format";
 import { cleanBarcode, looksLikeBarcode, newProductHref, productSearchText } from "@/lib/barcode";
 import { isOnSale, stockLevel, totalStock } from "@/lib/pricing";
+import { brandOf } from "@/lib/remito-pdf";
 import { useListPricer } from "@/lib/hooks";
-import { Badge, ButtonLink, EmptyState, Input, Panel, PriceTag, Select, Spinner } from "@/components/comun/ui";
+import { Badge, Button, ButtonLink, Dialog, EmptyState, Field, Input, Panel, PriceTag, Select, Spinner } from "@/components/comun/ui";
 import { ProductImage } from "@/components/comun/product-image";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
@@ -25,6 +27,9 @@ function Lista() {
   const [cat, setCat] = useState("");
   const [sup, setSup] = useState("");
   const [estado, setEstado] = useState<Estado>((params.get("estado") as Estado) || "todos");
+  const bulkUpdateProducts = useDB((s) => s.bulkUpdateProducts);
+  const [brandDialog, setBrandDialog] = useState(false);
+  const [brandText, setBrandText] = useState("");
 
   const list = useMemo(() => {
     const nq = normalizeText(q);
@@ -44,6 +49,14 @@ function Lista() {
   }, [products, q, cat, sup, estado, settings.lowStock]);
 
   const categories = [...new Set([...settings.categories, ...products.map((p) => p.category)])];
+  const knownBrands = [...new Set([...suppliers.map((s) => s.brand?.trim() ?? ""), ...products.map((p) => p.brand?.trim() ?? "")].filter(Boolean))].sort((a, b) => a.localeCompare(b, "es"));
+
+  const applyBrand = () => {
+    const brand = brandText.trim();
+    bulkUpdateProducts(list.map((p) => ({ id: p.id, patch: { brand } })));
+    toast.success(brand ? `Marca ${brand} en ${list.length} artículos` : `Se quitó la marca propia de ${list.length} artículos`);
+    setBrandDialog(false);
+  };
 
   return (
     <div>
@@ -88,6 +101,22 @@ function Lista() {
           </div>
         </div>
 
+        {list.length > 0 && (
+          <div className="flex justify-end">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="min-h-11"
+              onClick={() => {
+                setBrandText("");
+                setBrandDialog(true);
+              }}
+            >
+              <TagIcon size={18} /> Ponerles marca ({list.length})
+            </Button>
+          </div>
+        )}
+
         {products.length === 0 ? (
           <Panel>
             <EmptyState
@@ -129,7 +158,7 @@ function Lista() {
             <div className="hidden grid-cols-[56px_1fr_120px_90px_110px_130px] items-center gap-4 border-b border-linea px-4 py-2.5 text-sm text-gris md:grid">
               <span />
               <span>Artículo</span>
-              <span>Proveedor</span>
+              <span>Proveedor / marca</span>
               <span className="text-right">Stock</span>
               <span className="text-right">Costo</span>
               <span className="text-right">Venta</span>
@@ -154,7 +183,10 @@ function Lista() {
                           {p.code} · {p.category}
                         </p>
                       </div>
-                      <span className="hidden truncate text-sm text-gris md:block">{suppliers.find((s) => s.id === p.supplierId)?.name ?? "Sin proveedor"}</span>
+                      <span className="hidden min-w-0 text-sm md:block">
+                        <span className="block truncate text-gris">{suppliers.find((s) => s.id === p.supplierId)?.name ?? "Sin proveedor"}</span>
+                        <span className="block truncate text-tinta">{brandOf(p.id, products, suppliers) || <span className="text-gris">Sin marca</span>}</span>
+                      </span>
                       <span className="text-right md:order-none">
                         <Badge tone={lvl === "sin" ? "peligro" : lvl === "bajo" ? "alerta" : "neutral"}>{t} u.</Badge>
                       </span>
@@ -174,6 +206,40 @@ function Lista() {
           </Panel>
         )}
       </div>
+
+      <Dialog
+        open={brandDialog}
+        onClose={() => setBrandDialog(false)}
+        title="Ponerles marca"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setBrandDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={applyBrand}>{brandText.trim() ? `Aplicar a ${list.length}` : `Quitar marca propia a ${list.length}`}</Button>
+          </>
+        }
+      >
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            applyBrand();
+          }}
+          className="flex flex-col gap-3"
+        >
+          <p className="text-sm text-gris">
+            Se aplica a los {list.length} artículos que muestra la lista con los filtros de ahora. Es la marca que sale en el remito.
+          </p>
+          <Field label="Marca" htmlFor="bulk-brand" hint="Vacía = vuelven a usar la marca por defecto de su proveedor (o ninguna).">
+            <Input id="bulk-brand" list="bulk-brand-list" autoComplete="off" placeholder="Ej.: Discovery" value={brandText} onChange={(e) => setBrandText(e.target.value)} autoFocus />
+            <datalist id="bulk-brand-list">
+              {knownBrands.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+          </Field>
+        </form>
+      </Dialog>
     </div>
   );
 }

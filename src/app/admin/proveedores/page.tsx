@@ -23,6 +23,7 @@ const withDefaults = (s: Supplier): Supplier => ({
   taxCategory: "",
   docType: "CUIT",
   docNumber: "",
+  brand: "",
   ...s,
 });
 
@@ -78,6 +79,7 @@ export default function ProveedoresPage() {
       address: trim(editing.address),
       city: trim(editing.city),
       postalCode: trim(editing.postalCode),
+      brand: trim(editing.brand),
       coefficient: c && c > 0 ? c : null,
       demo: false,
     });
@@ -126,6 +128,7 @@ export default function ProveedoresPage() {
                           </p>
                         )}
                         <p className="text-sm text-gris">{[s.contact, s.phone, s.email].filter(Boolean).join(" · ") || "Sin datos de contacto"}</p>
+                        <p className="text-sm text-tinta">{s.brand ? <>Marca en remitos: {s.brand}</> : <span className="text-gris">Sin marca por defecto</span>}</p>
                       </button>
                       <span className="hang-tag shrink-0 text-[0.8rem]">× {fmtCoef(s.coefficient ?? general)}</span>
                     </div>
@@ -191,6 +194,14 @@ export default function ProveedoresPage() {
               </Field>
               <Field label="Coeficiente" htmlFor="sp-coef" hint={`Vacío = general (${fmtCoef(general)})`} className="sm:col-span-2">
                 <Input id="sp-coef" inputMode="decimal" className="num" value={coefText} onChange={(e) => setCoefText(e.target.value)} />
+              </Field>
+              <Field
+                label="Marca por defecto"
+                htmlFor="sp-brand"
+                hint="La que sale en el remito para sus artículos que no tengan una propia. Si es un importador (trae varias marcas), dejala vacía: el nombre del proveedor nunca se muestra."
+                className="sm:col-span-6"
+              >
+                <Input id="sp-brand" placeholder="Ej.: Amayra" autoComplete="off" {...f("brand")} />
               </Field>
             </FormSection>
 

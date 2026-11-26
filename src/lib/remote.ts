@@ -58,6 +58,7 @@ const productFrom = (r: Row, variants: Variant[]): Product => ({
   description: str(r.description),
   category: str(r.category),
   supplierId: (r.supplier_id as string) ?? null,
+  brand: str(r.brand),
   cost: Number(r.cost ?? 0),
   coefficient: num(r.coefficient),
   priceOverride: num(r.price_override),
@@ -82,6 +83,7 @@ const productTo = (p: Product): Row => ({
   description: p.description,
   category: p.category,
   supplier_id: p.supplierId,
+  brand: p.brand ?? "",
   cost: p.cost,
   coefficient: p.coefficient,
   price_override: p.priceOverride,
@@ -134,6 +136,7 @@ const supplierFrom = (r: Row): Supplier => ({
   phone: str(r.phone),
   email: str(r.email),
   coefficient: num(r.coefficient),
+  brand: str(r.brand),
   notes: str(r.notes),
   demo: !!r.demo,
 });
@@ -152,6 +155,7 @@ const supplierTo = (s: Supplier): Row => ({
   phone: s.phone,
   email: s.email,
   coefficient: s.coefficient,
+  brand: s.brand ?? "",
   notes: s.notes,
   demo: !!s.demo,
 });
@@ -226,10 +230,13 @@ const remitoFrom = (r: Row): Remito => ({
   dueDate: r.due_date ? dayFromISO(str(r.due_date)) : null,
   stockDiscounted: !!r.stock_discounted,
   orderId: (r.order_id as string) ?? null,
+  editedAt: r.edited_at ? ms(r.edited_at) : null,
   demo: !!r.demo,
 });
 
 const remitoTo = (r: Remito): Row => ({
+  // Solo se manda si se editó: así los remitos nuevos se guardan aunque falte correr la migración de edited_at.
+  ...(r.editedAt ? { edited_at: iso(r.editedAt) } : {}),
   id: r.id,
   number: r.number,
   client_id: r.clientId,

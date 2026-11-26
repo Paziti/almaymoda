@@ -77,6 +77,11 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
 
   const cost = parseNumber(costText) ?? 0;
   const ownCoef = parseNumber(coefText);
+  const supplierBrand = suppliers.find((s) => s.id === p.supplierId)?.brand?.trim() || "";
+  const knownBrands = useMemo(
+    () => [...new Set([...suppliers.map((s) => s.brand?.trim() ?? ""), ...products.map((x) => x.brand?.trim() ?? "")].filter(Boolean))].sort((a, b) => a.localeCompare(b, "es")),
+    [suppliers, products],
+  );
   const inherited = effectiveCoefficient({ coefficient: null, supplierId: p.supplierId }, suppliers, settings);
   const coef = priceMode === "coef" && ownCoef ? ownCoef : inherited.value;
   const computed = roundPrice(cost * coef, settings.rounding);
@@ -159,6 +164,7 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
     const product: Product = {
       ...p,
       name: p.name.trim(),
+      brand: (p.brand ?? "").trim(),
       code: p.code.trim(),
       barcode: cleanBarcode(p.barcode ?? "") || undefined,
       cost,
@@ -304,16 +310,30 @@ export function ProductForm({ initial, initialBarcode }: { initial?: Product; in
                 )}
               </Field>
             </div>
-            <Field label="Proveedor" htmlFor="f-sup">
-              <Select id="f-sup" value={p.supplierId ?? ""} onChange={(e) => set("supplierId", e.target.value || null)}>
-                <option value="">Sin proveedor</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Proveedor" htmlFor="f-sup" hint="Interno: no se muestra a las clientas">
+                <Select id="f-sup" value={p.supplierId ?? ""} onChange={(e) => set("supplierId", e.target.value || null)}>
+                  <option value="">Sin proveedor</option>
+                  {suppliers.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field
+                label="Marca"
+                htmlFor="f-brand"
+                hint={supplierBrand ? `Vacía = ${supplierBrand} (la del proveedor). Sale en el remito.` : "Sale en el remito. Vacía = el remito no muestra marca."}
+              >
+                <Input id="f-brand" list="f-brand-list" autoComplete="off" placeholder={supplierBrand || "Ej.: Discovery"} value={p.brand ?? ""} onChange={(e) => set("brand", e.target.value)} />
+                <datalist id="f-brand-list">
+                  {knownBrands.map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
+              </Field>
+            </div>
             <Field label="Descripción" htmlFor="f-desc" hint="Material, medidas, detalles. Se muestra en la tienda.">
               <Textarea id="f-desc" rows={3} value={p.description} onChange={(e) => set("description", e.target.value)} />
             </Field>

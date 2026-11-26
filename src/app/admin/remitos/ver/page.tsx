@@ -2,23 +2,26 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
 const noopSubscribe = () => () => {};
 import { toast } from "sonner";
-import { DownloadSimpleIcon, EnvelopeIcon, ShareNetworkIcon, WhatsappLogoIcon, CheckIcon } from "@phosphor-icons/react";
+import { DownloadSimpleIcon, EnvelopeIcon, ShareNetworkIcon, WhatsappLogoIcon, CheckIcon, PencilSimpleIcon, PrinterIcon } from "@phosphor-icons/react";
 import { useDB } from "@/lib/store";
-import { variantLabel } from "@/lib/labels";
-import { fmtDate, fmtMoney, remitoNumber } from "@/lib/format";
-import { buildRemitoPdf, remitoFileName, remitoMessage, remitoTotals } from "@/lib/remito-pdf";
-import { canShareFiles, downloadBlob, mailtoUrl, shareFile, whatsappUrl } from "@/lib/share";
+import { fmtDate, fmtDateTime, fmtMoney, remitoNumber } from "@/lib/format";
+import { buildRemitoPdf, remitoFileName, remitoMessage, remitoTotals, withBrands } from "@/lib/remito-pdf";
+import { canShareFiles, downloadBlob, mailtoUrl, printBlob, shareFile, whatsappUrl } from "@/lib/share";
 import { remitoStatus } from "@/lib/labels";
 import { Badge, Button, ButtonLink, ConfirmButton, EmptyState, Panel } from "@/components/comun/ui";
 import { PageHeader, pagePad } from "@/components/admin/shell";
 
 export default function RemitoPage() {
   const id = useSearchParams().get("id") ?? "";
-  const remito = useDB((s) => s.remitos.find((r) => r.id === id));
+  const saved = useDB((s) => s.remitos.find((r) => r.id === id));
+  const products = useDB((s) => s.products);
+  const suppliers = useDB((s) => s.suppliers);
+  // Los remitos viejos no guardaron la marca: se toma la del artículo (o la marca por defecto de su proveedor).
+  const remito = useMemo(() => saved && withBrands(saved, products, suppliers), [saved, products, suppliers]);
   const settings = useDB((s) => s.settings);
   const setStatus = useDB((s) => s.setRemitoStatus);
   const payments = useDB((s) => s.payments);
@@ -104,13 +107,16 @@ export default function RemitoPage() {
       <div className={`${pagePad} grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]`}>
         <div className="flex min-w-0 flex-col gap-4">
           <Panel className="flex flex-col gap-3 p-5">
-            <h2 className="font-semibold">Enviar</h2>
+            <h2 className="font-semibold">Enviar o imprimir</h2>
             <div className="grid gap-2 sm:grid-cols-2">
               <Button variant="whatsapp" size="lg" onClick={onWhatsapp} loading={busy}>
                 <WhatsappLogoIcon size={22} /> Mandar por WhatsApp
               </Button>
               <Button variant="secondary" size="lg" onClick={onMail}>
                 <EnvelopeIcon size={20} /> Mandar por mail
+              </Button>
+              <Button variant="secondary" size="lg" onClick={async () => printBlob(await getBlob())}>
+                <PrinterIcon size={20} /> Imprimir
               </Button>
               <Button variant="secondary" size="lg" onClick={async () => downloadBlob(await getBlob(), fileName)}>
                 <DownloadSimpleIcon size={20} /> Descargar PDF
@@ -140,7 +146,7 @@ export default function RemitoPage() {
                   <li key={k} className="flex justify-between gap-3 px-4 py-2.5 text-sm">
                     <span className="min-w-0">
                       <span className="num font-semibold">{i.qty} ×</span> {i.name}
-                      {(i.size || i.color) && `, ${variantLabel(i.size, i.color)}`}
+                      {i.brand && <span className="text-gris"> · {i.brand}</span>}
                     </span>
                     <span className="num shrink-0">{fmtMoney(i.qty * i.unitPrice)}</span>
                   </li>
@@ -189,9 +195,13 @@ export default function RemitoPage() {
               </Link>
             )}
             <p className="text-gris">{remito.stockDiscounted ? "El stock ya se descontó." : "Este remito no movió stock."}</p>
+            {remito.editedAt && <p className="text-gris">Modificado el {fmtDateTime(remito.editedAt)}.</p>}
           </Panel>
           {remito.status !== "anulado" && (
             <div className="flex flex-wrap gap-2">
+              <ButtonLink href={`/admin/remitos/nuevo?editar=${remito.id}`} variant="secondary">
+                <PencilSimpleIcon size={18} /> Editar remito
+              </ButtonLink>
               {remito.status === "emitido" && (
                 <Button variant="secondary" onClick={() => (setStatus(remito.id, "entregado"), toast.success("Marcado como entregado"))}>
                   <CheckIcon size={18} /> Marcar entregado

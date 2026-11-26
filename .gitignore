@@ -58,3 +58,8 @@ skills-lock.json
 
 # Listas y facturas de proveedores (datos del cliente)
 /listas
+
+# Credenciales de la CLI de Supabase (token y contraseña de la base): nunca al repo
+/supabase/credenciales.local
+# Lo que la CLI guarda al vincular el proyecto
+/supabase/.temp/

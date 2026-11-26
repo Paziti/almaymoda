@@ -45,3 +45,33 @@ export const canShareFiles = () => {
     return false;
   }
 };
+
+/**
+ * Abre el diálogo de impresión con el PDF. En la compu se imprime desde un iframe oculto,
+ * sin salir del panel. En teléfonos y tablets el iframe no imprime PDFs: se abre en otra
+ * pestaña y se imprime desde el visor (Compartir → Imprimir).
+ */
+export function printBlob(blob: Blob) {
+  const url = URL.createObjectURL(blob);
+  if (window.matchMedia("(pointer: coarse)").matches) {
+    window.open(url, "_blank");
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  document.getElementById("print-frame")?.remove();
+  const frame = document.createElement("iframe");
+  frame.id = "print-frame";
+  frame.title = "Impresión";
+  frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+  frame.onload = () => {
+    try {
+      frame.contentWindow?.focus();
+      frame.contentWindow?.print();
+    } catch {
+      window.open(url, "_blank");
+    }
+    // El iframe queda hasta la próxima impresión: si se quita enseguida, algunos navegadores cancelan el diálogo.
+  };
+  frame.src = url;
+  document.body.appendChild(frame);
+}

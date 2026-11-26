@@ -1,8 +1,26 @@
 "use client";
 
-import type { Remito, Settings } from "./types";
+import type { ID, Product, Remito, Settings, Supplier } from "./types";
 import { fmtDate, fmtMoney, remitoNumber } from "./format";
 import { variantLabel } from "./labels";
+
+/**
+ * Marca de un artículo: la suya o, si no tiene, la marca por defecto de su proveedor.
+ * Nunca el nombre del proveedor: muchos son importadores y no se muestran a las clientas.
+ */
+export function brandOf(productId: ID | null, products: Product[], suppliers: Supplier[]) {
+  const product = productId ? products.find((p) => p.id === productId) : undefined;
+  if (!product) return "";
+  if (product.brand?.trim()) return product.brand.trim();
+  const supplier = product.supplierId ? suppliers.find((s) => s.id === product.supplierId) : undefined;
+  return supplier?.brand?.trim() || "";
+}
+
+/** Completa la marca de los remitos emitidos antes de que se guardara en cada renglón. */
+export function withBrands(r: Remito, products: Product[], suppliers: Supplier[]): Remito {
+  if (r.items.every((i) => i.brand !== undefined)) return r;
+  return { ...r, items: r.items.map((i) => (i.brand !== undefined ? i : { ...i, brand: brandOf(i.productId, products, suppliers) })) };
+}
 
 export const remitoTotals = (r: Pick<Remito, "items" | "discount">) => {
   const subtotal = r.items.reduce((a, i) => a + i.qty * i.unitPrice, 0);
@@ -82,18 +100,17 @@ export async function buildRemitoPdf(r: Remito, s: Settings): Promise<Blob> {
   autoTable(doc, {
     startY: y,
     margin: { left: M, right: M },
-    head: [["Código", "Artículo", "Medida", "Color", "Cant.", "P. unit.", "Importe"]],
-    body: r.items.map((i) => [i.code, i.name, i.size, i.color, String(i.qty), fmtMoney(i.unitPrice), fmtMoney(i.qty * i.unitPrice)]),
+    head: [["Código", "Artículo", "Marca", "Cant.", "P. unit.", "Importe"]],
+    body: r.items.map((i) => [i.code, i.name, i.brand ?? "", String(i.qty), fmtMoney(i.unitPrice), fmtMoney(i.qty * i.unitPrice)]),
     styles: { font: "helvetica", fontSize: 9, textColor: INK, cellPadding: 2.4, lineColor: LINE, lineWidth: 0 },
     headStyles: { fillColor: INK, textColor: [255, 255, 255], fontStyle: "bold" },
     alternateRowStyles: { fillColor: [249, 245, 247] },
     columnStyles: {
       0: { cellWidth: 22 },
-      2: { cellWidth: 14, halign: "center" },
-      3: { cellWidth: 24 },
-      4: { cellWidth: 13, halign: "right" },
-      5: { cellWidth: 24, halign: "right" },
-      6: { cellWidth: 26, halign: "right" },
+      2: { cellWidth: 34 },
+      3: { cellWidth: 13, halign: "right" },
+      4: { cellWidth: 24, halign: "right" },
+      5: { cellWidth: 26, halign: "right" },
     },
   });
 

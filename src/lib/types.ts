@@ -17,6 +17,8 @@ export interface Product {
   description: string;
   category: string;
   supplierId: ID | null;
+  /** Marca que se muestra en el remito. Vacía = la marca por defecto del proveedor. */
+  brand?: string;
   /** Costo del proveedor (sin coeficiente). */
   cost: number;
   /** Coeficiente propio del artículo. null = usa el del proveedor o el general. */
@@ -63,6 +65,8 @@ export interface Supplier {
   phone: string;
   email: string;
   coefficient: number | null;
+  /** Marca de los artículos de este proveedor cuando no tienen una propia. Vacía en importadores (Target, Lesedife): su nombre no se muestra nunca. */
+  brand?: string;
   notes: string;
   demo?: boolean;
 }
@@ -95,6 +99,8 @@ export interface LineItem {
   color: string;
   qty: number;
   unitPrice: number;
+  /** Marca del artículo al emitir el remito. Ausente en pedidos y remitos viejos. */
+  brand?: string;
 }
 
 export type OrderStatus = "nuevo" | "confirmado" | "remitido" | "cancelado";
@@ -130,8 +136,13 @@ export interface Remito {
   dueDate?: number | null;
   stockDiscounted: boolean;
   orderId: ID | null;
+  /** Última vez que se editó después de emitirlo. Ausente = nunca se editó. */
+  editedAt?: number | null;
   demo?: boolean;
 }
+
+/** Lo que se puede cambiar al editar un remito ya emitido. El número, la fecha y los pagos no cambian. */
+export type RemitoEdit = Pick<Remito, "customer" | "items" | "notes" | "discount" | "priceList">;
 
 export type PaymentMethod = "efectivo" | "transferencia" | "mercadopago" | "cheque" | "otro";
 

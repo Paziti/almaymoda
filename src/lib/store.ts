@@ -14,6 +14,7 @@ import type {
   OrderStatus,
   Product,
   Remito,
+  RemitoEdit,
   Settings,
   StockMovement,
   Supplier,
@@ -77,6 +78,8 @@ interface Actions {
   setOrderStatus: (id: string, status: OrderStatus) => void;
   createRemito: (r: Omit<Remito, "id" | "number" | "createdAt" | "status" | "stockDiscounted">, discountStock: boolean) => Remito;
   setRemitoStatus: (id: string, status: Remito["status"]) => void;
+  /** Corrige un remito emitido: mismo número; si había descontado stock, se ajusta por la diferencia. */
+  updateRemito: (id: string, edit: RemitoEdit) => void;
   clearDemo: () => void;
   loadDemo: () => void;
   resetAll: () => void;
@@ -101,6 +104,27 @@ function initialDB(): DBState {
 
 function emptyDB(settings: Settings): DBState {
   return { settings, products: [], suppliers: [], clients: [], orders: [], remitos: [], movements: [], imports: [], payments: [], adjustments: [] };
+}
+
+/** Diferencia de unidades por color entre dos versiones de un remito: lo que vuelve al stock y lo que sale. */
+function stockDiff(before: LineItem[], after: LineItem[]) {
+  const net = new Map<string, LineItem>();
+  const add = (items: LineItem[], sign: 1 | -1) => {
+    for (const it of items) {
+      if (!it.productId || !it.variantId) continue;
+      const cur = net.get(it.variantId);
+      net.set(it.variantId, { ...it, qty: (cur?.qty ?? 0) + sign * it.qty });
+    }
+  };
+  add(before, 1);
+  add(after, -1);
+  const back: LineItem[] = [];
+  const out: LineItem[] = [];
+  for (const it of net.values()) {
+    if (it.qty > 0) back.push(it);
+    else if (it.qty < 0) out.push({ ...it, qty: -it.qty });
+  }
+  return { back, out };
 }
 
 function applyStockToItems(products: Product[], items: LineItem[], sign: 1 | -1, reason: string, movements: StockMovement[]) {
@@ -323,6 +347,25 @@ export const useDB = create<DBState & Actions>()(
             products,
             movements,
             remitos: s.remitos.map((x) => (x.id === id ? { ...x, status, stockDiscounted } : x)),
+          };
+        }),
+
+      updateRemito: (id, edit) =>
+        setState((s) => {
+          const r = s.remitos.find((x) => x.id === id);
+          if (!r || r.status === "anulado") return {};
+          let products = s.products;
+          const movements = [...s.movements];
+          if (r.stockDiscounted) {
+            const { back, out } = stockDiff(r.items, edit.items);
+            const label = `Edición remito ${r.number}`;
+            products = applyStockToItems(products, back, 1, label, movements);
+            products = applyStockToItems(products, out, -1, label, movements);
+          }
+          return {
+            products,
+            movements: movements.slice(0, 2000),
+            remitos: s.remitos.map((x) => (x.id === id ? { ...x, ...edit, editedAt: Date.now() } : x)),
           };
         }),
 

@@ -10,7 +10,7 @@ export const cleanBarcode = (s: string) => s.replace(/\D/g, "");
 export const looksLikeBarcode = (s: string) => /^\d{8,14}$/.test(s.trim());
 
 /** Texto en el que buscan los buscadores del panel: código, nombre y código de barras. */
-export const productSearchText = (p: Pick<Product, "code" | "name" | "barcode">) => `${p.code} ${p.name} ${p.barcode ?? ""}`;
+export const productSearchText = (p: Pick<Product, "code" | "name" | "barcode" | "brand">) => `${p.code} ${p.name} ${p.barcode ?? ""} ${p.brand ?? ""}`;
 
 /** Artículo que coincide exacto con lo tipeado o pistoleado: por código de barras o por código. */
 export function findExact<T extends Pick<Product, "code" | "barcode">>(products: T[], q: string): T | undefined {

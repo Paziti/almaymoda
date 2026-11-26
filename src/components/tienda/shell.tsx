@@ -71,7 +71,8 @@ export function ShopShell({ children }: { children: React.ReactNode }) {
         Saltar al contenido
       </a>
       {/* En el inicio la barra queda escondida hasta que termina la portada; en las demás páginas es la de siempre */}
-      <div className={enInicio ? clsx("fixed inset-x-0 top-0 z-30 transition-transform duration-500 ease-out", !barra && "-translate-y-full") : "contents"} inert={enInicio && !barra}>
+      {/* El esconder va con md:, así en el celular la barra está desde el primer momento (el HTML se arma sin saber el ancho). */}
+      <div className={enInicio ? clsx("fixed inset-x-0 top-0 z-30 transition-transform duration-500 ease-out", !barra && "md:-translate-y-full") : "contents"} inert={enInicio && !barra}>
       {hydrated && hasDemo && (
         <div className="bg-acento-suave text-tinta text-sm">
           <p className="mx-auto max-w-6xl px-4 py-2 text-center">
